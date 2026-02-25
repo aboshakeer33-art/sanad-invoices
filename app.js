@@ -7,412 +7,558 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 import {
-  collection, addDoc, doc, getDoc, setDoc, updateDoc,
-  deleteDoc, getDocs, query, orderBy, limit, serverTimestamp
+  collection, addDoc, getDocs, doc, setDoc, deleteDoc,
+  onSnapshot, query, where, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-/* ========= Helpers ========= */
+/* =========================
+   Helpers
+========================= */
 const $ = (id) => document.getElementById(id);
-const fmt = (n) => (Number(n || 0)).toLocaleString("ar-SD");
-const todayISO = () => new Date().toISOString().slice(0,10);
+const fmt = (n) => `SDG ${Number(n || 0).toLocaleString("en-US")}`;
+const todayStr = () => {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+};
+const n0 = (v) => Number(v || 0);
 
-let currentUser = null;
-let items = []; // current invoice items
+/* =========================
+   UI Refs
+========================= */
+const authBox = $("authBox");
+const appBox = $("appBox");
 
-function ownerWrap(data){
-  return { ...data, ownerUid: currentUser.uid };
-}
+const authMsg = $("authMsg");
+const invMsg = $("invMsg");
+const prodMsg = $("prodMsg");
+const custMsg = $("custMsg");
+const repMsg = $("repMsg");
+const expMsg = $("expMsg");
 
-/* ========= UI: Tabs ========= */
-document.querySelectorAll(".tab").forEach(btn=>{
-  btn.addEventListener("click", ()=>{
-    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+/* =========================
+   Tabs
+========================= */
+document.querySelectorAll(".tabBtn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tabBtn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    const t = btn.dataset.tab;
-    document.querySelectorAll(".tabpane").forEach(p=>p.classList.add("hidden"));
-    $(`tab-${t}`).classList.remove("hidden");
+    const target = btn.dataset.tab;
+    document.querySelectorAll(".tabPane").forEach(p => p.classList.add("hidden"));
+    $(target).classList.remove("hidden");
   });
 });
 
-/* ========= Auth ========= */
-$("btnLogin").addEventListener("click", async ()=>{
-  $("authMsg").textContent = "جارٍ الدخول...";
-  try{
+/* =========================
+   Auth
+========================= */
+$("btnLogin").addEventListener("click", async () => {
+  authMsg.textContent = "";
+  try {
     await signInWithEmailAndPassword(auth, $("email").value.trim(), $("password").value);
-    $("authMsg").textContent = "";
-  }catch(e){
-    $("authMsg").textContent = "فشل الدخول: " + (e?.message || e);
+  } catch (e) {
+    authMsg.textContent = `فشل الدخول: ${e.message}`;
   }
 });
 
-$("btnSignup").addEventListener("click", async ()=>{
-  $("authMsg").textContent = "جارٍ إنشاء الحساب...";
-  try{
+$("btnSignup").addEventListener("click", async () => {
+  authMsg.textContent = "";
+  try {
     await createUserWithEmailAndPassword(auth, $("email").value.trim(), $("password").value);
-    $("authMsg").textContent = "تم إنشاء الحساب. سجل دخول الآن.";
-  }catch(e){
-    $("authMsg").textContent = "فشل إنشاء الحساب: " + (e?.message || e);
+    authMsg.textContent = "تم إنشاء الحساب. الآن سجل دخول.";
+  } catch (e) {
+    authMsg.textContent = `فشل إنشاء الحساب: ${e.message}`;
   }
 });
 
-$("btnLogout").addEventListener("click", ()=> signOut(auth));
+$("btnLogout").addEventListener("click", async () => {
+  await signOut(auth);
+});
 
-onAuthStateChanged(auth, async (user)=>{
-  currentUser = user || null;
-  if(!currentUser){
-    $("authView").classList.remove("hidden");
-    $("mainView").classList.add("hidden");
-    return;
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    authBox.classList.add("hidden");
+    appBox.classList.remove("hidden");
+    boot();
+  } else {
+    appBox.classList.add("hidden");
+    authBox.classList.remove("hidden");
   }
-  $("authView").classList.add("hidden");
-  $("mainView").classList.remove("hidden");
-
-  // init defaults
-  $("invoiceDate").value = todayISO();
-
-  await ensureSettings();
-  await loadCustomers();
-  await loadProducts();
-  await nextInvoiceNo();
-  await refreshInvoices();
 });
 
-/* ========= Settings: invoice counter ========= */
-async function ensureSettings(){
-  const ref = doc(db, "settings", "main_" + currentUser.uid);
-  const snap = await getDoc(ref);
-  if(!snap.exists()){
-    await setDoc(ref, ownerWrap({
-      shopName: "سند لإكسسوارات الأبواب والألمنيوم",
-      currency: "SDG",
-      lastInvoiceNo: 0,
-      createdAt: serverTimestamp()
-    }));
-  }
-}
+/* =========================
+   State
+========================= */
+let products = [];   // {id,name,sellPrice,buyPrice}
+let invoiceItems = []; // {productId,name,qty,sellPrice,buyPrice}
 
-async function nextInvoiceNo(){
-  const ref = doc(db, "settings", "main_" + currentUser.uid);
-  const snap = await getDoc(ref);
-  const last = snap.data().lastInvoiceNo || 0;
-  const next = last + 1;
-  const no = "INV-" + String(next).padStart(6,"0");
-  $("invoiceNo").value = no;
-  return { ref, last, next, no };
-}
+/* =========================
+   Boot
+========================= */
+function boot() {
+  // defaults
+  $("invDate").value = todayStr();
+  $("rFrom").value = todayStr();
+  $("rTo").value = todayStr();
+  $("eDate").value = todayStr();
 
-/* ========= Customers ========= */
-$("btnAddCustomer").addEventListener("click", async ()=>{
-  const name = $("cName").value.trim();
-  const phone = $("cPhone").value.trim();
-  if(!name) return;
+  // live lists
+  watchProducts();
+  watchCustomers();
+  watchExpenses();
 
-  await addDoc(collection(db,"customers"), ownerWrap({
-    name, phone,
-    createdAt: serverTimestamp()
-  }));
-  $("cName").value = ""; $("cPhone").value = "";
-  await loadCustomers();
-});
+  // invoice actions
+  $("btnAddItem").onclick = addInvoiceItem;
+  $("btnSaveInvoice").onclick = saveInvoice;
 
-async function loadCustomers(){
-  const tbody = $("customersTable").querySelector("tbody");
-  tbody.innerHTML = "";
-  const sel = $("invoiceCustomer");
-  sel.innerHTML = "";
-  // default cash customer
-  const opt0 = document.createElement("option");
-  opt0.value = "";
-  opt0.textContent = "عميل نقدي";
-  sel.appendChild(opt0);
+  // products
+  $("btnAddProduct").onclick = addOrUpdateProduct;
 
-  const qy = query(collection(db,"customers"), orderBy("createdAt","desc"), limit(200));
-  const snaps = await getDocs(qy);
+  // customers
+  $("btnAddCustomer").onclick = addCustomer;
 
-  snaps.forEach(s=>{
-    const d = s.data();
-    if(d.ownerUid !== currentUser.uid) return;
+  // reports
+  $("btnRunReport").onclick = runReport;
 
-    // table
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${d.name}</td>
-      <td>${d.phone || ""}</td>
-      <td><button class="iconbtn" data-del="${s.id}">حذف</button></td>
-    `;
-    tbody.appendChild(tr);
+  // print
+  $("btnPrintA4").onclick = () => printInvoice("A4");
+  $("btnPrint80").onclick = () => printInvoice("80");
 
-    // select
-    const opt = document.createElement("option");
-    opt.value = s.id;
-    opt.textContent = d.name;
-    sel.appendChild(opt);
-  });
+  // when choosing product -> auto sell price
+  $("invProduct").addEventListener("change", syncSellPriceFromProduct);
 
-  tbody.querySelectorAll("button[data-del]").forEach(b=>{
-    b.addEventListener("click", async ()=>{
-      await deleteDoc(doc(db,"customers", b.dataset.del));
-      await loadCustomers();
-    });
-  });
-}
-
-/* ========= Products ========= */
-$("btnAddProduct").addEventListener("click", async ()=>{
-  const name = $("pName").value.trim();
-  const price = Number($("pPrice").value || 0);
-  if(!name) return;
-  await addDoc(collection(db,"products"), ownerWrap({
-    name, price,
-    createdAt: serverTimestamp()
-  }));
-  $("pName").value=""; $("pPrice").value="";
-  await loadProducts();
-});
-
-async function loadProducts(){
-  const tbody = $("productsTable").querySelector("tbody");
-  tbody.innerHTML = "";
-  const sel = $("itemProduct");
-  sel.innerHTML = `<option value="">اختر منتج</option>`;
-
-  const qy = query(collection(db,"products"), orderBy("createdAt","desc"), limit(500));
-  const snaps = await getDocs(qy);
-
-  snaps.forEach(s=>{
-    const d = s.data();
-    if(d.ownerUid !== currentUser.uid) return;
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${d.name}</td>
-      <td>${fmt(d.price)} SDG</td>
-      <td><button class="iconbtn" data-del="${s.id}">حذف</button></td>
-    `;
-    tbody.appendChild(tr);
-
-    const opt = document.createElement("option");
-    opt.value = s.id;
-    opt.textContent = `${d.name} — ${fmt(d.price)} SDG`;
-    opt.dataset.price = d.price;
-    sel.appendChild(opt);
-  });
-
-  sel.addEventListener("change", ()=>{
-    const o = sel.options[sel.selectedIndex];
-    $("itemPrice").value = o?.dataset?.price || "";
-  }, { once:false });
-
-  tbody.querySelectorAll("button[data-del]").forEach(b=>{
-    b.addEventListener("click", async ()=>{
-      await deleteDoc(doc(db,"products", b.dataset.del));
-      await loadProducts();
-    });
-  });
-}
-
-/* ========= Invoice items ========= */
-$("btnAddItem").addEventListener("click", ()=>{
-  const prodSel = $("itemProduct");
-  const prodId = prodSel.value;
-  const prodText = prodSel.options[prodSel.selectedIndex]?.textContent || "";
-  const name = prodText.split("—")[0].trim() || "صنف";
-  const price = Number($("itemPrice").value || 0);
-  const qty = Number($("itemQty").value || 1);
-  if(!prodId && !name) return;
-  if(qty <= 0) return;
-
-  items.push({ prodId, name, price, qty, total: price*qty });
-  renderItems();
-});
-
-function renderItems(){
-  const tb = $("itemsTable").querySelector("tbody");
-  tb.innerHTML = "";
-  items.forEach((it, idx)=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${it.name}</td>
-      <td>${fmt(it.price)}</td>
-      <td>${fmt(it.qty)}</td>
-      <td>${fmt(it.total)}</td>
-      <td><button class="iconbtn" data-rm="${idx}">حذف</button></td>
-    `;
-    tb.appendChild(tr);
-  });
-
-  tb.querySelectorAll("button[data-rm]").forEach(b=>{
-    b.addEventListener("click", ()=>{
-      items.splice(Number(b.dataset.rm), 1);
-      renderItems();
-    });
-  });
+  // load initial inv no
+  $("invNo").value = `INV-${Date.now().toString().slice(-6)}`;
 
   recalcTotals();
 }
 
-$("discount").addEventListener("input", recalcTotals);
-$("paid").addEventListener("input", recalcTotals);
-
-function recalcTotals(){
-  const sum = items.reduce((a,b)=> a + (b.total||0), 0);
-  const discount = Number($("discount").value || 0);
-  const grand = Math.max(0, sum - discount);
-  const paid = Number($("paid").value || 0);
-  const due = Math.max(0, grand - paid);
-  $("grandTotal").textContent = fmt(grand);
-  $("dueTotal").textContent = fmt(due);
-  return { sum, discount, grand, paid, due };
+/* =========================
+   Products
+========================= */
+function watchProducts() {
+  const qy = query(collection(db, "products"), orderBy("name"));
+  onSnapshot(qy, (snap) => {
+    products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderProducts();
+    fillProductsSelect();
+    syncSellPriceFromProduct();
+  });
 }
 
-/* ========= Save Invoice ========= */
-$("btnSaveInvoice").addEventListener("click", async ()=>{
-  if(items.length === 0){
-    $("saveMsg").textContent = "أضف بند واحد على الأقل.";
-    return;
-  }
-  $("saveMsg").textContent = "جارٍ الحفظ...";
-
-  const { ref, next, no } = await nextInvoiceNo();
-  const dt = $("invoiceDate").value || todayISO();
-  const customerId = $("invoiceCustomer").value || "";
-  const customerName = $("invoiceCustomer").selectedOptions[0]?.textContent || "عميل نقدي";
-  const totals = recalcTotals();
-
-  const invoiceDoc = await addDoc(collection(db,"invoices"), ownerWrap({
-    invoiceNo: no,
-    date: dt,
-    customerId,
-    customerName,
-    items,
-    discount: totals.discount,
-    total: totals.grand,
-    paid: totals.paid,
-    due: totals.due,
-    createdAt: serverTimestamp()
-  }));
-
-  await updateDoc(ref, ownerWrap({ lastInvoiceNo: next }));
-
-  // reset
-  items = [];
-  renderItems();
-  $("discount").value = 0;
-  $("paid").value = 0;
-  $("saveMsg").textContent = "تم حفظ الفاتورة ✅";
-
-  await nextInvoiceNo();
-  await refreshInvoices();
-
-  // جهّز للطباعة فوراً
-  await printInvoice(invoiceDoc.id);
-});
-
-/* ========= Invoices list ========= */
-$("btnRefreshInvoices").addEventListener("click", refreshInvoices);
-
-async function refreshInvoices(){
-  const tbody = $("invoicesTable").querySelector("tbody");
-  tbody.innerHTML = "";
-  const qy = query(collection(db,"invoices"), orderBy("createdAt","desc"), limit(200));
-  const snaps = await getDocs(qy);
-
-  snaps.forEach(s=>{
-    const d = s.data();
-    if(d.ownerUid !== currentUser.uid) return;
-
+function renderProducts() {
+  const tb = $("productsTable").querySelector("tbody");
+  tb.innerHTML = "";
+  products.forEach(p => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${d.invoiceNo}</td>
-      <td>${d.date}</td>
-      <td>${d.customerName || ""}</td>
-      <td>${fmt(d.total)} SDG</td>
-      <td>${fmt(d.paid)} SDG</td>
-      <td>${fmt(d.due)} SDG</td>
-      <td><button class="iconbtn" data-print="${s.id}">طباعة</button></td>
+      <td>${p.name || ""}</td>
+      <td>${fmt(p.sellPrice)}</td>
+      <td>${fmt(p.buyPrice)}</td>
+      <td class="actions">
+        <button class="btn sm" data-edit="${p.id}">تعديل</button>
+        <button class="btn sm danger" data-del="${p.id}">حذف</button>
+      </td>
     `;
-    tbody.appendChild(tr);
+    tb.appendChild(tr);
   });
 
-  tbody.querySelectorAll("button[data-print]").forEach(b=>{
-    b.addEventListener("click", ()=> printInvoice(b.dataset.print));
+  tb.querySelectorAll("[data-edit]").forEach(b => {
+    b.onclick = () => {
+      const p = products.find(x => x.id === b.dataset.edit);
+      $("pName").value = p.name || "";
+      $("pSell").value = p.sellPrice ?? 0;
+      $("pBuy").value = p.buyPrice ?? 0;
+      $("pName").dataset.editId = p.id;
+      prodMsg.textContent = "تعديل جاهز — اضغط إضافة/تحديث للحفظ.";
+    };
+  });
+
+  tb.querySelectorAll("[data-del]").forEach(b => {
+    b.onclick = async () => {
+      await deleteDoc(doc(db, "products", b.dataset.del));
+    };
   });
 }
 
-/* ========= Print A4 ========= */
-$("btnPrint").addEventListener("click", async ()=>{
-  // طباعة آخر فاتورة محفوظة إن وجدت
-  const qy = query(collection(db,"invoices"), orderBy("createdAt","desc"), limit(1));
-  const snaps = await getDocs(qy);
-  const first = snaps.docs.find(x=> x.data().ownerUid === currentUser.uid);
-  if(first) await printInvoice(first.id);
+async function addOrUpdateProduct() {
+  prodMsg.textContent = "";
+  const name = $("pName").value.trim();
+  const sellPrice = n0($("pSell").value);
+  const buyPrice = n0($("pBuy").value);
+
+  if (!name) return (prodMsg.textContent = "اكتب اسم المنتج.");
+
+  const editId = $("pName").dataset.editId;
+  if (editId) {
+    await setDoc(doc(db, "products", editId), {
+      name, sellPrice, buyPrice, updatedAt: serverTimestamp()
+    }, { merge: true });
+    $("pName").dataset.editId = "";
+    prodMsg.textContent = "تم تحديث المنتج ✅";
+  } else {
+    await addDoc(collection(db, "products"), {
+      name, sellPrice, buyPrice, createdAt: serverTimestamp()
+    });
+    prodMsg.textContent = "تم إضافة المنتج ✅";
+  }
+
+  $("pName").value = "";
+  $("pSell").value = "";
+  $("pBuy").value = "";
+}
+
+function fillProductsSelect() {
+  const sel = $("invProduct");
+  const current = sel.value;
+  sel.innerHTML = `<option value="">اختر منتج...</option>`;
+  products.forEach(p => {
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    opt.textContent = p.name;
+    sel.appendChild(opt);
+  });
+  if (products.some(p => p.id === current)) sel.value = current;
+}
+
+function syncSellPriceFromProduct() {
+  const pid = $("invProduct").value;
+  const p = products.find(x => x.id === pid);
+  if (p) $("invSell").value = p.sellPrice ?? "";
+}
+
+/* =========================
+   Invoice
+========================= */
+function addInvoiceItem() {
+  invMsg.textContent = "";
+  const pid = $("invProduct").value;
+  const qty = n0($("invQty").value);
+  const sellPrice = n0($("invSell").value);
+
+  if (!pid) return (invMsg.textContent = "اختر منتج.");
+  if (qty <= 0) return (invMsg.textContent = "الكمية لازم تكون أكبر من صفر.");
+
+  const p = products.find(x => x.id === pid);
+  if (!p) return (invMsg.textContent = "المنتج غير موجود.");
+
+  invoiceItems.push({
+    productId: pid,
+    name: p.name,
+    qty,
+    sellPrice,
+    buyPrice: n0(p.buyPrice)
+  });
+
+  renderItems();
+  recalcTotals();
+}
+
+function renderItems() {
+  const tb = $("itemsTable").querySelector("tbody");
+  tb.innerHTML = "";
+  invoiceItems.forEach((it, idx) => {
+    const total = it.qty * it.sellPrice;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${it.name}</td>
+      <td>${it.qty}</td>
+      <td>${fmt(it.sellPrice)}</td>
+      <td>${fmt(it.buyPrice)}</td>
+      <td>${fmt(total)}</td>
+      <td class="actions">
+        <button class="btn sm danger" data-rm="${idx}">حذف</button>
+      </td>
+    `;
+    tb.appendChild(tr);
+  });
+
+  tb.querySelectorAll("[data-rm]").forEach(b => {
+    b.onclick = () => {
+      invoiceItems.splice(Number(b.dataset.rm), 1);
+      renderItems();
+      recalcTotals();
+    };
+  });
+}
+
+function recalcTotals() {
+  const subtotal = invoiceItems.reduce((s, it) => s + it.qty * it.sellPrice, 0);
+  const costTotal = invoiceItems.reduce((s, it) => s + it.qty * it.buyPrice, 0);
+
+  const discount = n0($("invDiscount")?.value);
+  const shipping = n0($("invShipping")?.value);
+  const otherCost = n0($("invOtherCost")?.value);
+
+  const grand = Math.max(0, subtotal - discount) + shipping;
+  const profit = grand - (costTotal + otherCost);
+
+  $("tGrand").textContent = fmt(grand);
+  $("tCost").textContent = fmt(costTotal);
+  $("tProfit").textContent = fmt(profit);
+}
+
+["invDiscount","invShipping","invOtherCost"].forEach(id => {
+  const el = $(id);
+  if (el) el.addEventListener("input", recalcTotals);
 });
 
-async function printInvoice(id){
-  const snap = await getDoc(doc(db,"invoices", id));
-  if(!snap.exists()) return;
-  const d = snap.data();
-  if(d.ownerUid !== currentUser.uid) return;
+async function saveInvoice() {
+  invMsg.textContent = "";
+  if (invoiceItems.length === 0) return (invMsg.textContent = "أضف بند واحد على الأقل.");
 
-  const logoHtml = `<img class="p-logo" src="logo.png" onerror="this.style.display='none'">`;
+  const date = $("invDate").value || todayStr();
+  const number = $("invNo").value.trim() || `INV-${Date.now().toString().slice(-6)}`;
+  const customer = $("invCustomer").value.trim();
 
-  const rows = (d.items || []).map((it,i)=>`
+  const discount = n0($("invDiscount").value);
+  const shipping = n0($("invShipping").value);
+  const otherCost = n0($("invOtherCost").value);
+
+  const subtotal = invoiceItems.reduce((s, it) => s + it.qty * it.sellPrice, 0);
+  const costTotal = invoiceItems.reduce((s, it) => s + it.qty * it.buyPrice, 0);
+  const grand = Math.max(0, subtotal - discount) + shipping;
+  const profit = grand - (costTotal + otherCost);
+
+  const payload = {
+    number,
+    date,             // YYYY-MM-DD (ممتاز للتقارير)
+    customer,
+    items: invoiceItems.map(it => ({
+      productId: it.productId,
+      name: it.name,
+      qty: it.qty,
+      sellPrice: it.sellPrice,
+      buyPrice: it.buyPrice,
+      lineTotal: it.qty * it.sellPrice,
+      lineCost: it.qty * it.buyPrice
+    })),
+    totals: {
+      subtotal,
+      discount,
+      shipping,
+      otherCost,
+      grand,
+      costTotal,
+      profit
+    },
+    createdAt: serverTimestamp()
+  };
+
+  await addDoc(collection(db, "invoices"), payload);
+
+  invMsg.textContent = `تم حفظ الفاتورة ✅ (الربح: ${fmt(profit)})`;
+
+  // reset for next invoice
+  invoiceItems = [];
+  renderItems();
+  $("invNo").value = `INV-${Date.now().toString().slice(-6)}`;
+  $("invCustomer").value = "";
+  $("invDiscount").value = 0;
+  $("invShipping").value = 0;
+  $("invOtherCost").value = 0;
+  recalcTotals();
+}
+
+/* =========================
+   Customers
+========================= */
+function watchCustomers() {
+  const qy = query(collection(db, "customers"), orderBy("name"));
+  onSnapshot(qy, (snap) => {
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const tb = $("customersTable").querySelector("tbody");
+    tb.innerHTML = "";
+    list.forEach(c => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${c.name || ""}</td>
+        <td>${c.phone || ""}</td>
+        <td class="actions">
+          <button class="btn sm danger" data-del="${c.id}">حذف</button>
+        </td>
+      `;
+      tb.appendChild(tr);
+    });
+    tb.querySelectorAll("[data-del]").forEach(b => {
+      b.onclick = async () => await deleteDoc(doc(db, "customers", b.dataset.del));
+    });
+  });
+}
+
+async function addCustomer() {
+  custMsg.textContent = "";
+  const name = $("cName").value.trim();
+  const phone = $("cPhone").value.trim();
+  if (!name) return (custMsg.textContent = "اكتب اسم العميل.");
+
+  await addDoc(collection(db, "customers"), {
+    name, phone, createdAt: serverTimestamp()
+  });
+
+  custMsg.textContent = "تم إضافة العميل ✅";
+  $("cName").value = "";
+  $("cPhone").value = "";
+}
+
+/* =========================
+   Reports
+========================= */
+async function runReport() {
+  repMsg.textContent = "";
+  const from = $("rFrom").value || todayStr();
+  const to = $("rTo").value || todayStr();
+
+  // We store date as string YYYY-MM-DD => string compare works for ranges.
+  const qy = query(
+    collection(db, "invoices"),
+    where("date", ">=", from),
+    where("date", "<=", to),
+    orderBy("date", "asc")
+  );
+
+  const snap = await getDocs(qy);
+  const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  const sales = rows.reduce((s, r) => s + n0(r.totals?.grand), 0);
+  const profit = rows.reduce((s, r) => s + n0(r.totals?.profit), 0);
+
+  $("rSales").textContent = fmt(sales);
+  $("rProfit").textContent = fmt(profit);
+  $("rCount").textContent = String(rows.length);
+
+  const tb = $("reportTable").querySelector("tbody");
+  tb.innerHTML = "";
+  rows.forEach(r => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${r.date || ""}</td>
+      <td>${r.number || ""}</td>
+      <td>${r.customer || "-"}</td>
+      <td>${fmt(r.totals?.grand)}</td>
+      <td class="goldText">${fmt(r.totals?.profit)}</td>
+    `;
+    tb.appendChild(tr);
+  });
+
+  repMsg.textContent = "تم ✅";
+}
+
+/* =========================
+   Expenses (Optional)
+========================= */
+function watchExpenses() {
+  const qy = query(collection(db, "expenses"), orderBy("date", "desc"));
+  onSnapshot(qy, (snap) => {
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const tb = $("expensesTable").querySelector("tbody");
+    tb.innerHTML = "";
+    list.forEach(e => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${e.date || ""}</td>
+        <td>${e.title || ""}</td>
+        <td>${fmt(e.amount)}</td>
+        <td class="actions">
+          <button class="btn sm danger" data-del="${e.id}">حذف</button>
+        </td>
+      `;
+      tb.appendChild(tr);
+    });
+
+    tb.querySelectorAll("[data-del]").forEach(b => {
+      b.onclick = async () => await deleteDoc(doc(db, "expenses", b.dataset.del));
+    });
+  });
+}
+
+$("btnAddExpense")?.addEventListener("click", async () => {
+  expMsg.textContent = "";
+  const date = $("eDate").value || todayStr();
+  const title = $("eTitle").value.trim();
+  const amount = n0($("eAmount").value);
+  if (!title) return (expMsg.textContent = "اكتب وصف المصروف.");
+  if (amount <= 0) return (expMsg.textContent = "اكتب مبلغ صحيح.");
+
+  await addDoc(collection(db, "expenses"), {
+    date, title, amount, createdAt: serverTimestamp()
+  });
+
+  expMsg.textContent = "تم إضافة المصروف ✅";
+  $("eTitle").value = "";
+  $("eAmount").value = "";
+});
+
+/* =========================
+   Printing (Basic)
+========================= */
+function printInvoice(mode) {
+  // يطبع آخر فاتورة موجودة في الشاشة (invoiceItems + totals)
+  const date = $("invDate").value || todayStr();
+  const number = $("invNo").value.trim();
+  const customer = $("invCustomer").value.trim();
+
+  const subtotal = invoiceItems.reduce((s, it) => s + it.qty * it.sellPrice, 0);
+  const costTotal = invoiceItems.reduce((s, it) => s + it.qty * it.buyPrice, 0);
+  const discount = n0($("invDiscount").value);
+  const shipping = n0($("invShipping").value);
+  const otherCost = n0($("invOtherCost").value);
+  const grand = Math.max(0, subtotal - discount) + shipping;
+  const profit = grand - (costTotal + otherCost);
+
+  const lines = invoiceItems.map(it => `
     <tr>
-      <td>${i+1}</td>
       <td>${it.name}</td>
-      <td>${fmt(it.price)}</td>
-      <td>${fmt(it.qty)}</td>
-      <td>${fmt(it.total)}</td>
+      <td>${it.qty}</td>
+      <td>${fmt(it.sellPrice)}</td>
+      <td>${fmt(it.qty * it.sellPrice)}</td>
     </tr>
   `).join("");
 
-  $("printArea").innerHTML = `
-    <div class="p-head">
-      <div class="p-brand">
-        ${logoHtml}
-        <div>
-          <h1>سند لإكسسوارات الأبواب والألمنيوم</h1>
-          <div class="meta">فاتورة بيع — A4</div>
-        </div>
-      </div>
-      <div class="meta">
-        <div><b>رقم:</b> ${d.invoiceNo}</div>
-        <div><b>تاريخ:</b> ${d.date}</div>
-        <div><b>العميل:</b> ${d.customerName || "عميل نقدي"}</div>
-        <div><b>العملة:</b> SDG</div>
+  const is80 = mode === "80";
+  const w = is80 ? "80mm" : "A4";
+
+  const html = `
+  <div class="printCard ${is80 ? "p80" : "pA4"}">
+    <div class="pHead">
+      <img src="logo.png" class="pLogo" />
+      <div>
+        <h2>سند لإكسسوارات الأبواب والألمنيوم</h2>
+        <div class="muted">فاتورة — ${w}</div>
       </div>
     </div>
+    <div class="pMeta">
+      <div>رقم: <b>${number || "-"}</b></div>
+      <div>تاريخ: <b>${date}</b></div>
+      <div>عميل: <b>${customer || "-"}</b></div>
+    </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>الصنف</th>
-          <th>السعر</th>
-          <th>الكمية</th>
-          <th>الإجمالي</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
+    <table class="pTable">
+      <thead><tr><th>الصنف</th><th>كمية</th><th>سعر</th><th>إجمالي</th></tr></thead>
+      <tbody>${lines || ""}</tbody>
     </table>
 
-    <div class="sum">
-      <div class="sumbox">
-        <div><b>الإجمالي:</b> ${fmt(d.total)} SDG</div>
-        <div><b>خصم:</b> ${fmt(d.discount)} SDG</div>
-        <div><b>مدفوع:</b> ${fmt(d.paid)} SDG</div>
-        <div><b>المتبقي:</b> ${fmt(d.due)} SDG</div>
-      </div>
+    <div class="pTotals">
+      <div>الإجمالي: <b>${fmt(grand)}</b></div>
+      <div>خصم: <b>${fmt(discount)}</b></div>
+      <div>ترحيل: <b>${fmt(shipping)}</b></div>
+      <div>مصروفات: <b>${fmt(otherCost)}</b></div>
+      <div class="goldText">صافي الربح: <b>${fmt(profit)}</b></div>
     </div>
 
-    <div class="meta" style="margin-top:12px">
-      شكراً لتعاملكم مع <b>سند</b>.
-    </div>
-  `;
+    <div class="pFoot muted">شكراً لتعاملكم مع سند</div>
+  </div>`;
 
-  $("printArea").classList.remove("hidden");
+  const area = $("printArea");
+  area.innerHTML = html;
+  area.classList.remove("hidden");
+
   window.print();
-  $("printArea").classList.add("hidden");
-}
 
-/* ========= End ========= */
+  setTimeout(() => {
+    area.classList.add("hidden");
+    area.innerHTML = "";
+  }, 500);
+        }
