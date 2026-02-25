@@ -74,3 +74,47 @@ input:focus,select:focus{border-color:rgba(200,168,90,.7)}
 .print th,.print td{border:1px solid #000;padding:8px;text-align:right;font-size:12px}
 .print .sum{margin-top:10px;display:flex;justify-content:flex-end}
 .print .sumbox{min-width:260px;border:2px solid #000;padding:10px;font-size:12px;line-height:1.8}
+/* === VIP BACKGROUND OVERRIDE (replace pure black) === */
+:root{
+  --bg1:#0b1220;   /* كحلي غامق */
+  --bg2:#0f1a2b;   /* كحلي فحمي */
+  --card:#111c2f;  /* لون الكروت */
+  --card2:#0e1728;
+  --stroke:rgba(255,255,255,.08);
+  --text:#e9eef7;
+  --muted:rgba(233,238,247,.72);
+  --gold:#c9a24a;
+}
+
+body{
+  background: radial-gradient(1200px 600px at 20% 10%, rgba(201,162,74,.10), transparent 55%),
+              radial-gradient(900px 500px at 80% 20%, rgba(120,170,255,.10), transparent 60%),
+              linear-gradient(180deg, var(--bg1), var(--bg2));
+  color: var(--text);
+}
+
+.card{
+  background: linear-gradient(180deg, rgba(17,28,47,.92), rgba(14,23,40,.92));
+  border: 1px solid var(--stroke);
+  box-shadow: 0 12px 30px rgba(0,0,0,.35);
+}
+
+.topbar{
+  background: rgba(10,16,28,.72);
+  border-bottom: 1px solid var(--stroke);
+  backdrop-filter: blur(10px);
+}
+
+.table th, .table td{
+  border-bottom: 1px solid var(--stroke);
+}
+
+input, select{
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--stroke);
+  color: var(--text);
+}
+
+.muted{ color: var(--muted); }
+.goldText{ color: var(--gold); }
+.btn.gold{ background: var(--gold); color:#0b1220; }
