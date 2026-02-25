@@ -1,5 +1,6 @@
 /* Sanad Invoicing — Offline, LocalStorage, SDG
    ✅ Profit is internal only (reports), never shown on invoice print/view
+   ✅ Invoice top shows Arabic categories split Right/Left
 */
 
 const LS_KEY = "sanad_invoices_v1";
@@ -22,8 +23,8 @@ function loadDB(){
   // Seed
   return {
     settings:{
-      nameAr:"سند",
-      nameEn:"SANAD",
+      nameAr:"سند لاكسسوارات الألمنيوم",
+      nameEn:"SANAD Aluminum Accessories",
       locAr:"الخرطوم بحري",
       locEn:"Khartoum Bahri",
       phone:"+249913678918",
@@ -57,7 +58,7 @@ function setActiveView(view){
 
 /* ---------------- Header / Settings ---------------- */
 function renderHeader(){
-  $("companyNameAr").textContent = DB.settings.nameAr || "سند";
+  $("companyNameAr").textContent = DB.settings.nameAr || "سند لاكسسوارات الألمنيوم";
   $("companyNameEn").textContent = DB.settings.nameEn || "SANAD";
   $("companyLocationAr").textContent = DB.settings.locAr || "";
   $("companyLocationEn").textContent = DB.settings.locEn || "";
@@ -97,7 +98,6 @@ function renderCustomers(){
     tbody.appendChild(tr);
   });
 
-  // returns invoice selector
   renderReturnInvoiceSelect();
 }
 
@@ -307,7 +307,6 @@ function renderInvoices(){
       tbody.appendChild(tr);
     });
 
-  // refresh returns selector items based on invoices
   renderReturnInvoiceSelect();
 }
 
@@ -316,7 +315,6 @@ function printCurrentOrSelected(invoiceId=null){
   if(invoiceId){
     inv = DB.invoices.find(x=>x.id===invoiceId);
   }else{
-    // print current cart as preview (without saving)
     if(CART.length === 0) return alert("السلة فاضية");
   }
 
@@ -328,6 +326,17 @@ function printCurrentOrSelected(invoiceId=null){
   const lines = inv ? inv.lines : CART;
   const totals = inv ? {subtotal:inv.subtotal, discountTotal:inv.discountTotal, grandTotal:inv.grandTotal} : calcCartTotals();
 
+  // ✅ الأقسام عربي فقط وتقسيمها يمين/يسار أعلى الفاتورة
+  const catsRight = [
+    "مفصلات دواليب مطبخ",
+    "مفصلات أبواب حديد",
+    "كوالين أبواب خشب دفن"
+  ];
+  const catsLeft = [
+    "كوالين كهرباء (ذكية بصمة)",
+    "جملة وقطاعي"
+  ];
+
   // ✅ PROFIT NOT INCLUDED
   const html = `
     <div class="card" style="background:#fff;border:1px solid #ddd;border-radius:14px;padding:14px;color:#111">
@@ -337,12 +346,29 @@ function printCurrentOrSelected(invoiceId=null){
           <div style="font-size:12px;color:#555">${escapeHtml(s.locEn||"")} • ${escapeHtml(s.phone||"")}</div>
         </div>
         <div style="direction:rtl;text-align:right">
-          <div style="font-weight:900;font-size:26px">${escapeHtml(s.nameAr||"سند")}</div>
+          <div style="font-weight:900;font-size:26px">${escapeHtml(s.nameAr||"سند لاكسسوارات الألمنيوم")}</div>
           <div style="font-size:12px;color:#555">${escapeHtml(s.locAr||"")} • ${escapeHtml(s.phone||"")}</div>
         </div>
       </div>
 
       <hr style="border:none;border-top:1px solid #ddd;margin:10px 0"/>
+
+      <!-- ✅ الأقسام (عربي فقط) يمين/يسار فوق -->
+      <div style="display:flex;justify-content:space-between;gap:12px;margin:10px 0">
+        <div style="direction:rtl;text-align:right;width:48%;border:1px solid #ddd;border-radius:12px;padding:10px">
+          <div style="font-weight:900;margin-bottom:6px">الأقسام</div>
+          <ul style="margin:0;padding-right:18px">
+            ${catsRight.map(x=>`<li style="margin:4px 0">${escapeHtml(x)}</li>`).join("")}
+          </ul>
+        </div>
+
+        <div style="direction:rtl;text-align:right;width:48%;border:1px solid #ddd;border-radius:12px;padding:10px">
+          <div style="font-weight:900;margin-bottom:6px">الأقسام</div>
+          <ul style="margin:0;padding-right:18px">
+            ${catsLeft.map(x=>`<li style="margin:4px 0">${escapeHtml(x)}</li>`).join("")}
+          </ul>
+        </div>
+      </div>
 
       <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
         <div style="direction:rtl"><b>رقم الفاتورة:</b> ${escapeHtml(no)} • <b>التاريخ:</b> ${escapeHtml(date)}</div>
@@ -440,10 +466,8 @@ function addReturn(){
   const it = DB.items.find(x=>x.id===itemId);
   if(!it) return alert("اختر بند صحيح");
 
-  // amount uses selling price * qty (simple)
   const amount = Number(it.sell||0) * qty;
 
-  // restore stock
   it.stock = Number(it.stock||0) + qty;
 
   DB.returns.unshift({
@@ -486,12 +510,10 @@ function renderReturns(){
 
 /* ---------------- Reports ---------------- */
 function renderReportsQuick(){
-  // all-time quick stats
   let sales = 0;
   let profit = 0;
   let invCount = 0;
 
-  // returns reduce sales (simple)
   const returnsTotal = DB.returns.reduce((a,r)=>a+Number(r.amount||0),0);
 
   DB.invoices.forEach(inv=>{
@@ -544,14 +566,12 @@ function deleteInvoice(id){
   const inv = DB.invoices.find(x=>x.id===id);
   if(!inv) return;
 
-  // restore stock (since invoice deleted)
   inv.lines.forEach(ln=>{
     const it = DB.items.find(x=>x.id===ln.itemId);
     if(!it) return;
     it.stock = Number(it.stock||0) + Number(ln.qty||0);
   });
 
-  // also detach returns linked to this invoice (keep them but set invoiceId null)
   DB.returns.forEach(r=>{
     if(r.invoiceId === id) r.invoiceId = null;
   });
@@ -565,7 +585,6 @@ function deleteInvoice(id){
 }
 
 function deleteReturn(id){
-  // when deleting a return, subtract its stock restore effect
   const r = DB.returns.find(x=>x.id===id);
   if(!r) return;
   const it = DB.items.find(x=>x.id===r.itemId);
@@ -580,7 +599,6 @@ function deleteReturn(id){
 }
 
 function deleteItem(id){
-  // prevent delete if used in invoices
   const used = DB.invoices.some(inv => inv.lines.some(ln=>ln.itemId===id));
   if(used) return alert("لا يمكن حذف بند مستخدم في فواتير محفوظة");
   DB.items = DB.items.filter(x=>x.id!==id);
@@ -590,7 +608,6 @@ function deleteItem(id){
 }
 
 function deleteCustomer(id){
-  // prevent delete if used
   const used = DB.invoices.some(inv => inv.customerId === id);
   if(used) return alert("لا يمكن حذف عميل مرتبط بفواتير");
   if(DB.customers.length<=1) return alert("لا يمكن حذف آخر عميل");
@@ -599,30 +616,4 @@ function deleteCustomer(id){
   renderCustomers();
 }
 
-/* ---------------- Misc ---------------- */
-function escapeHtml(s){
-  return String(s ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
-/* ---------------- Events ---------------- */
-function bindEvents(){
-  // navigation
-  qsa(".navBtn").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      setActiveView(btn.dataset.view);
-    });
-  });
-
-  // defaults
-  $("invDate").value = todayISO();
-
-  // invoice
-  $("addLineBtn").addEventListener("click", addLine);
-  $("clearCartBtn").addEventListener("click", clearCart);
-  $("saveInvoiceBtn").addEventListener("click", saveInvoice);
-  $("printInvoiceBtn").addEventListener("click", ()=>printCur
+/* ---------------- 
