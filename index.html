@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>سند - المحاسبة والفواتير</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <img src="logo.png" class="logo" alt="Sanad Logo" onerror="this.style.display='none'">
+        <div>
+          <div class="title">سند لإكسسوارات الأبواب والألمنيوم</div>
+          <div class="sub">نظام فواتير A4 — العملة: SDG</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="btnPrint" class="btn btn-ghost">طباعة A4</button>
+        <button id="btnLogout" class="btn btn-danger">خروج</button>
+      </div>
+    </header>
+
+    <!-- AUTH -->
+    <section id="authView" class="card">
+      <h2>تسجيل الدخول</h2>
+      <p class="muted">أدخل إيميل وكلمة مرور (لازم تكون عامل مستخدم في Authentication).</p>
+      <div class="grid2">
+        <div>
+          <label>الإيميل</label>
+          <input id="email" type="email" placeholder="name@example.com" />
+        </div>
+        <div>
+          <label>كلمة المرور</label>
+          <input id="password" type="password" placeholder="••••••••" />
+        </div>
+      </div>
+      <div class="row">
+        <button id="btnLogin" class="btn">دخول</button>
+        <button id="btnSignup" class="btn btn-ghost">إنشاء حساب (اختياري)</button>
+        <span id="authMsg" class="muted"></span>
+      </div>
+    </section>
+
+    <!-- MAIN -->
+    <section id="mainView" class="hidden">
+      <div class="tabs">
+        <button class="tab active" data-tab="invoice">فاتورة جديدة</button>
+        <button class="tab" data-tab="invoices">الفواتير</button>
+        <button class="tab" data-tab="products">المنتجات</button>
+        <button class="tab" data-tab="customers">العملاء</button>
+      </div>
+
+      <!-- INVOICE -->
+      <div class="card tabpane" id="tab-invoice">
+        <h2>إنشاء فاتورة</h2>
+
+        <div class="grid3">
+          <div>
+            <label>العميل</label>
+            <select id="invoiceCustomer"></select>
+          </div>
+          <div>
+            <label>تاريخ</label>
+            <input id="invoiceDate" type="date" />
+          </div>
+          <div>
+            <label>رقم الفاتورة</label>
+            <input id="invoiceNo" type="text" disabled />
+          </div>
+        </div>
+
+        <div class="line"></div>
+
+        <h3>بنود الفاتورة</h3>
+        <div class="grid4">
+          <div>
+            <label>المنتج</label>
+            <select id="itemProduct"></select>
+          </div>
+          <div>
+            <label>السعر (SDG)</label>
+            <input id="itemPrice" type="number" step="1" />
+          </div>
+          <div>
+            <label>الكمية</label>
+            <input id="itemQty" type="number" step="1" value="1" />
+          </div>
+          <div class="v-end">
+            <button id="btnAddItem" class="btn">إضافة</button>
+          </div>
+        </div>
+
+        <div class="tablewrap">
+          <table class="table" id="itemsTable">
+            <thead>
+              <tr>
+                <th>الصنف</th>
+                <th>السعر</th>
+                <th>الكمية</th>
+                <th>الإجمالي</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="grid3">
+          <div>
+            <label>خصم (SDG)</label>
+            <input id="discount" type="number" step="1" value="0" />
+          </div>
+          <div>
+            <label>مدفوع (SDG)</label>
+            <input id="paid" type="number" step="1" value="0" />
+          </div>
+          <div class="totals">
+            <div>الإجمالي: <b id="grandTotal">0</b> SDG</div>
+            <div>المتبقي: <b id="dueTotal">0</b> SDG</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <button id="btnSaveInvoice" class="btn">حفظ الفاتورة</button>
+          <span id="saveMsg" class="muted"></span>
+        </div>
+      </div>
+
+      <!-- INVOICES LIST -->
+      <div class="card tabpane hidden" id="tab-invoices">
+        <div class="row space">
+          <h2>الفواتير</h2>
+          <button id="btnRefreshInvoices" class="btn btn-ghost">تحديث</button>
+        </div>
+        <div class="tablewrap">
+          <table class="table" id="invoicesTable">
+            <thead>
+              <tr>
+                <th>رقم</th>
+                <th>تاريخ</th>
+                <th>عميل</th>
+                <th>إجمالي</th>
+                <th>مدفوع</th>
+                <th>متبقي</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PRODUCTS -->
+      <div class="card tabpane hidden" id="tab-products">
+        <div class="row space">
+          <h2>المنتجات</h2>
+        </div>
+
+        <div class="grid3">
+          <div>
+            <label>اسم المنتج</label>
+            <input id="pName" placeholder="مثال: مسكة شباك سحاب" />
+          </div>
+          <div>
+            <label>سعر البيع (SDG)</label>
+            <input id="pPrice" type="number" step="1" />
+          </div>
+          <div class="v-end">
+            <button id="btnAddProduct" class="btn">إضافة منتج</button>
+          </div>
+        </div>
+
+        <div class="tablewrap">
+          <table class="table" id="productsTable">
+            <thead>
+              <tr>
+                <th>المنتج</th>
+                <th>السعر</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CUSTOMERS -->
+      <div class="card tabpane hidden" id="tab-customers">
+        <div class="row space">
+          <h2>العملاء</h2>
+        </div>
+
+        <div class="grid3">
+          <div>
+            <label>اسم العميل</label>
+            <input id="cName" placeholder="مثال: محمد أحمد" />
+          </div>
+          <div>
+            <label>هاتف</label>
+            <input id="cPhone" placeholder="مثال: 09xxxxxxx" />
+          </div>
+          <div class="v-end">
+            <button id="btnAddCustomer" class="btn">إضافة عميل</button>
+          </div>
+        </div>
+
+        <div class="tablewrap">
+          <table class="table" id="customersTable">
+            <thead>
+              <tr>
+                <th>الاسم</th>
+                <th>الهاتف</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <!-- PRINT AREA (A4) -->
+  <section id="printArea" class="print hidden"></section>
+
+  <script type="module" src="firebase.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
