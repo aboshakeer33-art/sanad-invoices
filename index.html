@@ -1,233 +1,340 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>سند - المحاسبة والفواتير</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=12" />
 </head>
-
 <body>
-  <div class="app">
-    <header class="topbar">
-      <div class="brand">
-        <img src="logo.png" class="logo" alt="Sanad Logo" onerror="this.style.display='none'">
-        <div>
-          <div class="title">سند لإكسسوارات الأبواب والألمنيوم</div>
-          <div class="sub">نظام فواتير A4 — العملة: SDG</div>
-        </div>
-      </div>
 
-      <div class="actions">
-        <button id="btnPrint" class="btn btn-ghost">طباعة A4</button>
-        <button id="btnLogout" class="btn btn-danger">خروج</button>
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="brand">
+      <img src="logo.png" class="logo" alt="Sanad" />
+      <div class="brandText">
+        <h1>سند لإكسسوارات الأبواب والألمنيوم</h1>
+        <p>نظام فواتير + مخزون + أرباح — العملة: SDG</p>
       </div>
-    </header>
+    </div>
 
-    <!-- AUTH -->
-    <section id="authView" class="card">
-      <h2>تسجيل الدخول</h2>
-      <p class="muted">أدخل إيميل وكلمة مرور (لازم تكون عامل مستخدم في Authentication).</p>
-      <div class="grid2">
-        <div>
-          <label>الإيميل</label>
-          <input id="email" type="email" placeholder="name@example.com" />
-        </div>
-        <div>
-          <label>كلمة المرور</label>
-          <input id="password" type="password" placeholder="••••••••" />
-        </div>
-      </div>
-      <div class="row">
-        <button id="btnLogin" class="btn">دخول</button>
-        <button id="btnSignup" class="btn btn-ghost">إنشاء حساب (اختياري)</button>
-        <span id="authMsg" class="muted"></span>
-      </div>
-    </section>
+    <nav class="tabs">
+      <button class="tabBtn active" data-tab="tab-invoices">الفواتير</button>
+      <button class="tabBtn" data-tab="tab-products">المنتجات</button>
+      <button class="tabBtn" data-tab="tab-customers">العملاء</button>
+      <button class="tabBtn" data-tab="tab-reports">التقارير</button>
+      <button class="tabBtn" data-tab="tab-expenses">مصروفات</button>
+    </nav>
 
-    <!-- MAIN -->
-    <section id="mainView" class="hidden">
-      <div class="tabs">
-        <button class="tab active" data-tab="invoice">فاتورة جديدة</button>
-        <button class="tab" data-tab="invoices">الفواتير</button>
-        <button class="tab" data-tab="products">المنتجات</button>
-        <button class="tab" data-tab="customers">العملاء</button>
-      </div>
+    <div class="topActions">
+      <button id="btnPrintA4" class="btn ghost">طباعة A4</button>
+      <button id="btnPrint80" class="btn ghost">طباعة 80mm</button>
+      <button id="btnLogout" class="btn danger">خروج</button>
+    </div>
+  </header>
 
-      <!-- INVOICE -->
-      <div class="card tabpane" id="tab-invoice">
+  <!-- AUTH -->
+  <section id="authBox" class="card auth hidden">
+    <h2>تسجيل الدخول</h2>
+    <p class="muted">ادخل الإيميل وكلمة المرور (حساب المحل).</p>
+    <div class="grid2">
+      <div>
+        <label>الإيميل</label>
+        <input id="email" type="email" placeholder="name@example.com" />
+      </div>
+      <div>
+        <label>كلمة المرور</label>
+        <input id="password" type="password" placeholder="********" />
+      </div>
+    </div>
+
+    <div class="row end gap">
+      <button id="btnSignup" class="btn ghost">إنشاء حساب (اختياري)</button>
+      <button id="btnLogin" class="btn gold">دخول</button>
+    </div>
+
+    <div id="authMsg" class="msg"></div>
+  </section>
+
+  <!-- APP -->
+  <main id="appBox" class="container hidden">
+
+    <!-- INVOICES -->
+    <section id="tab-invoices" class="tabPane card">
+      <div class="row space">
         <h2>إنشاء فاتورة</h2>
+        <div class="pill">عملة: SDG</div>
+      </div>
 
-        <div class="grid3">
-          <div>
-            <label>العميل</label>
-            <select id="invoiceCustomer"></select>
-          </div>
-          <div>
-            <label>تاريخ</label>
-            <input id="invoiceDate" type="date" />
-          </div>
-          <div>
-            <label>رقم الفاتورة</label>
-            <input id="invoiceNo" type="text" disabled />
-          </div>
+      <div class="grid3">
+        <div>
+          <label>رقم الفاتورة</label>
+          <input id="invNo" placeholder="يُنشأ تلقائياً" />
         </div>
-
-        <div class="line"></div>
-
-        <h3>بنود الفاتورة</h3>
-        <div class="grid4">
-          <div>
-            <label>المنتج</label>
-            <select id="itemProduct"></select>
-          </div>
-          <div>
-            <label>السعر (SDG)</label>
-            <input id="itemPrice" type="number" step="1" />
-          </div>
-          <div>
-            <label>الكمية</label>
-            <input id="itemQty" type="number" step="1" value="1" />
-          </div>
-          <div class="v-end">
-            <button id="btnAddItem" class="btn">إضافة</button>
-          </div>
+        <div>
+          <label>تاريخ</label>
+          <input id="invDate" type="date" />
         </div>
-
-        <div class="tablewrap">
-          <table class="table" id="itemsTable">
-            <thead>
-              <tr>
-                <th>الصنف</th>
-                <th>السعر</th>
-                <th>الكمية</th>
-                <th>الإجمالي</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-
-        <div class="grid3">
-          <div>
-            <label>خصم (SDG)</label>
-            <input id="discount" type="number" step="1" value="0" />
-          </div>
-          <div>
-            <label>مدفوع (SDG)</label>
-            <input id="paid" type="number" step="1" value="0" />
-          </div>
-          <div class="totals">
-            <div>الإجمالي: <b id="grandTotal">0</b> SDG</div>
-            <div>المتبقي: <b id="dueTotal">0</b> SDG</div>
-          </div>
-        </div>
-
-        <div class="row">
-          <button id="btnSaveInvoice" class="btn">حفظ الفاتورة</button>
-          <span id="saveMsg" class="muted"></span>
+        <div>
+          <label>العميل (اختياري)</label>
+          <input id="invCustomer" placeholder="اسم العميل" />
         </div>
       </div>
 
-      <!-- INVOICES LIST -->
-      <div class="card tabpane hidden" id="tab-invoices">
-        <div class="row space">
-          <h2>الفواتير</h2>
-          <button id="btnRefreshInvoices" class="btn btn-ghost">تحديث</button>
+      <hr class="sep" />
+
+      <h3>بنود الفاتورة</h3>
+      <div class="grid4">
+        <div>
+          <label>المنتج</label>
+          <select id="invProduct"></select>
         </div>
-        <div class="tablewrap">
-          <table class="table" id="invoicesTable">
-            <thead>
-              <tr>
-                <th>رقم</th>
-                <th>تاريخ</th>
-                <th>عميل</th>
-                <th>إجمالي</th>
-                <th>مدفوع</th>
-                <th>متبقي</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+        <div>
+          <label>الكمية</label>
+          <input id="invQty" type="number" min="1" step="1" value="1" />
+        </div>
+        <div>
+          <label>سعر البيع (SDG)</label>
+          <input id="invSell" type="number" step="1" placeholder="يجي تلقائي" />
+        </div>
+        <div class="v-end">
+          <button id="btnAddItem" class="btn">إضافة</button>
         </div>
       </div>
 
-      <!-- PRODUCTS -->
-      <div class="card tabpane hidden" id="tab-products">
-        <div class="row space">
-          <h2>المنتجات</h2>
-        </div>
+      <div class="tableWrap">
+        <table class="table" id="itemsTable">
+          <thead>
+            <tr>
+              <th>المنتج</th>
+              <th>الكمية</th>
+              <th>بيع</th>
+              <th>شراء</th>
+              <th>إجمالي</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
 
-        <div class="grid3">
-          <div>
-            <label>اسم المنتج</label>
-            <input id="pName" placeholder="مثال: مسكة شباك سحاب" />
-          </div>
-          <div>
-            <label>سعر البيع (SDG)</label>
-            <input id="pPrice" type="number" step="1" />
-          </div>
-          <div class="v-end">
-            <button id="btnAddProduct" class="btn">إضافة منتج</button>
-          </div>
+      <div class="grid3">
+        <div>
+          <label>خصم (SDG)</label>
+          <input id="invDiscount" type="number" step="1" value="0" />
         </div>
-
-        <div class="tablewrap">
-          <table class="table" id="productsTable">
-            <thead>
-              <tr>
-                <th>المنتج</th>
-                <th>السعر</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+        <div>
+          <label>ترحيل/شحن (SDG)</label>
+          <input id="invShipping" type="number" step="1" value="0" />
+        </div>
+        <div>
+          <label>مصروفات أخرى (SDG)</label>
+          <input id="invOtherCost" type="number" step="1" value="0" />
         </div>
       </div>
 
-      <!-- CUSTOMERS -->
-      <div class="card tabpane hidden" id="tab-customers">
-        <div class="row space">
-          <h2>العملاء</h2>
+      <div class="totals">
+        <div>
+          <div class="muted">الإجمالي</div>
+          <div id="tGrand" class="big">SDG 0</div>
         </div>
-
-        <div class="grid3">
-          <div>
-            <label>اسم العميل</label>
-            <input id="cName" placeholder="مثال: محمد أحمد" />
-          </div>
-          <div>
-            <label>هاتف</label>
-            <input id="cPhone" placeholder="مثال: 09xxxxxxx" />
-          </div>
-          <div class="v-end">
-            <button id="btnAddCustomer" class="btn">إضافة عميل</button>
-          </div>
+        <div>
+          <div class="muted">إجمالي الشراء</div>
+          <div id="tCost" class="big">SDG 0</div>
         </div>
-
-        <div class="tablewrap">
-          <table class="table" id="customersTable">
-            <thead>
-              <tr>
-                <th>الاسم</th>
-                <th>الهاتف</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+        <div>
+          <div class="muted">صافي الربح</div>
+          <div id="tProfit" class="big goldText">SDG 0</div>
         </div>
       </div>
 
+      <div class="row end">
+        <button id="btnSaveInvoice" class="btn gold">حفظ الفاتورة</button>
+      </div>
+
+      <div id="invMsg" class="msg"></div>
     </section>
-  </div>
 
-  <!-- PRINT AREA (A4) -->
+    <!-- PRODUCTS -->
+    <section id="tab-products" class="tabPane card hidden">
+      <div class="row space">
+        <h2>المنتجات (بيع + شراء + مخزون)</h2>
+      </div>
+
+      <div class="grid4">
+        <div>
+          <label>اسم المنتج</label>
+          <input id="pName" placeholder="مثال: مفصلة..." />
+        </div>
+        <div>
+          <label>سعر البيع (SDG)</label>
+          <input id="pSell" type="number" step="1" />
+        </div>
+        <div>
+          <label>سعر الشراء (SDG)</label>
+          <input id="pBuy" type="number" step="1" />
+        </div>
+        <div class="v-end">
+          <button id="btnAddProduct" class="btn">إضافة/تحديث</button>
+        </div>
+      </div>
+
+      <div class="tableWrap">
+        <table class="table" id="productsTable">
+          <thead>
+            <tr>
+              <th>المنتج</th>
+              <th>بيع</th>
+              <th>شراء</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="prodMsg" class="msg"></div>
+    </section>
+
+    <!-- CUSTOMERS -->
+    <section id="tab-customers" class="tabPane card hidden">
+      <div class="row space">
+        <h2>العملاء</h2>
+      </div>
+
+      <div class="grid3">
+        <div>
+          <label>اسم العميل</label>
+          <input id="cName" placeholder="مثال: محمد أحمد" />
+        </div>
+        <div>
+          <label>هاتف</label>
+          <input id="cPhone" placeholder="09xxxxxxxx" />
+        </div>
+        <div class="v-end">
+          <button id="btnAddCustomer" class="btn">إضافة عميل</button>
+        </div>
+      </div>
+
+      <div class="tableWrap">
+        <table class="table" id="customersTable">
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>الهاتف</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="custMsg" class="msg"></div>
+    </section>
+
+    <!-- REPORTS -->
+    <section id="tab-reports" class="tabPane card hidden">
+      <div class="row space">
+        <h2>التقارير (مبيعات + أرباح)</h2>
+        <div class="pill">صافي الربح = بيع − (شراء + مصروفات الفاتورة)</div>
+      </div>
+
+      <div class="grid3">
+        <div>
+          <label>من تاريخ</label>
+          <input id="rFrom" type="date" />
+        </div>
+        <div>
+          <label>إلى تاريخ</label>
+          <input id="rTo" type="date" />
+        </div>
+        <div class="v-end">
+          <button id="btnRunReport" class="btn gold">عرض التقرير</button>
+        </div>
+      </div>
+
+      <div class="totals">
+        <div>
+          <div class="muted">إجمالي المبيعات</div>
+          <div id="rSales" class="big">SDG 0</div>
+        </div>
+        <div>
+          <div class="muted">صافي الربح</div>
+          <div id="rProfit" class="big goldText">SDG 0</div>
+        </div>
+        <div>
+          <div class="muted">عدد الفواتير</div>
+          <div id="rCount" class="big">0</div>
+        </div>
+      </div>
+
+      <div class="tableWrap">
+        <table class="table" id="reportTable">
+          <thead>
+            <tr>
+              <th>التاريخ</th>
+              <th>رقم</th>
+              <th>العميل</th>
+              <th>الإجمالي</th>
+              <th>الربح</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="repMsg" class="msg"></div>
+    </section>
+
+    <!-- EXPENSES -->
+    <section id="tab-expenses" class="tabPane card hidden">
+      <div class="row space">
+        <h2>مصروفات (اختياري)</h2>
+        <div class="pill">لو داير لاحقاً نخصمها من ربح اليوم/الشهر</div>
+      </div>
+
+      <div class="grid3">
+        <div>
+          <label>تاريخ</label>
+          <input id="eDate" type="date" />
+        </div>
+        <div>
+          <label>وصف</label>
+          <input id="eTitle" placeholder="مثال: كهرباء/ترحيل..." />
+        </div>
+        <div>
+          <label>المبلغ (SDG)</label>
+          <input id="eAmount" type="number" step="1" />
+        </div>
+      </div>
+
+      <div class="row end">
+        <button id="btnAddExpense" class="btn">إضافة مصروف</button>
+      </div>
+
+      <div class="tableWrap">
+        <table class="table" id="expensesTable">
+          <thead>
+            <tr>
+              <th>التاريخ</th>
+              <th>الوصف</th>
+              <th>المبلغ</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="expMsg" class="msg"></div>
+    </section>
+
+  </main>
+
+  <!-- PRINT AREA -->
   <section id="printArea" class="print hidden"></section>
-<script type="module" src="firebase.js?v=9"></script>
-<script type="module" src="app.js?v=9"></script>
+
+  <script type="module" src="firebase.js?v=12"></script>
+  <script type="module" src="app.js?v=12"></script>
 </body>
 </html>
