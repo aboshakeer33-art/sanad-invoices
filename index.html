@@ -2,125 +2,134 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8">
-  <title>سند | نظام الفواتير</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>سند للاكسسوارات | نظام الفواتير</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    body { 
-      font-family: 'Segoe UI', Arial, sans-serif; 
-      background: #0f172a; 
-      color: #e2e8f0;
-      min-height: 100vh;
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
     }
     
-    /* ===== الهيدر ===== */ { 
-        <!-- Header -->
-  <header class="header">
-    <div class="logo-section">
-      <div class="logo-ar">
-        <h1>سند للاكسسوارات</h1>
-        <p class="logo-details">
-          مسكات أبواب فاخرة • كوالين أبواب خشب وحديد<br>
-          كوالين كهرباء ذكية بصمة • مفصلات دولاب مطبخ<br>
-          جميع اكسسوارات الألمنيوم • جملة وقطاعي
-        </p>
-        <p class="logo-contact">الخرطوم بحري • +249913678918</p>
-      </div>
-      <div class="divider"></div>
-      <div class="logo-en">
-        <h2>SANAD</h2>
-        <p class="logo-details-en">
-          Premium Door Handles • Wood & Iron Locks<br>
-          Smart Fingerprint Locks • Kitchen Hinges<br>
-          All Aluminum Accessories • Wholesale & Retail
-        </p>
-        <p class="logo-contact">Khartoum Bahri • +249913678918</p>
-      </div>
-    </div>
-  </header>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: #0a0e17; 
+      color: #e2e8f0;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
     
-      background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+    /* ===== الهيدر ===== */
+    .main-header { 
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
       padding: 30px 20px; 
       text-align: center;
       border-bottom: 4px solid #d4af37;
       position: relative;
     }
     
-    .header::after {
+    .main-header::after {
       content: '';
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, #d4af37, transparent);
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #d4af37, #fbbf24, #d4af37, transparent);
     }
     
-    .logo-section {
+    .header-content {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      gap: 30px;
+      gap: 50px;
       flex-wrap: wrap;
+      max-width: 1200px;
+      margin: 0 auto;
     }
     
-    .logo-ar {
+    .header-ar {
       text-align: right;
+      flex: 1;
+      min-width: 300px;
     }
     
-    .logo-ar h1 {
+    .header-ar h1 {
       color: #d4af37;
       font-size: 42px;
       font-weight: 900;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
       letter-spacing: 1px;
+      margin-bottom: 15px;
     }
     
-    .logo-ar p {
-      color: #94a3b8;
+    .header-details {
+      color: #f1f5f9;
       font-size: 16px;
-      margin-top: 8px;
+      line-height: 2;
+      margin-bottom: 15px;
+      font-weight: 500;
     }
     
-    .divider {
+    .header-details span {
+      display: block;
+    }
+    
+    .header-contact {
+      color: #94a3b8;
+      font-size: 15px;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid rgba(212, 175, 55, 0.3);
+    }
+    
+    .header-divider {
       width: 2px;
-      height: 80px;
-      background: linear-gradient(180deg, transparent, #d4af37, transparent);
+      min-height: 200px;
+      background: linear-gradient(180deg, transparent, #d4af37, #fbbf24, #d4af37, transparent);
     }
     
-    .logo-en {
+    .header-en {
       text-align: left;
+      flex: 1;
+      min-width: 300px;
     }
     
-    .logo-en h2 {
+    .header-en h2 {
       color: #d4af37;
-      font-size: 36px;
+      font-size: 40px;
       font-weight: 800;
-      letter-spacing: 3px;
+      letter-spacing: 5px;
+      margin-bottom: 15px;
     }
     
-    .logo-en p {
-      color: #64748b;
+    .header-details-en {
+      color: #cbd5e1;
       font-size: 14px;
-      margin-top: 8px;
+      line-height: 2;
+      margin-bottom: 15px;
+      font-weight: 500;
+    }
+    
+    .header-details-en span {
+      display: block;
     }
     
     /* ===== القائمة ===== */
-    .nav { 
+    .navbar { 
       display: flex; 
-      gap: 5px; 
-      padding: 0;
-      background: #1e293b;
-      border-bottom: 2px solid #334155;
+      gap: 0; 
+      background: #0f172a;
+      border-bottom: 2px solid #1e293b;
       overflow-x: auto;
     }
     
-    .nav button {
+    .navbar button {
       background: transparent;
       color: #94a3b8;
       border: none;
       border-bottom: 3px solid transparent;
-      padding: 18px 25px;
+      padding: 18px 30px;
       cursor: pointer;
       font-size: 15px;
       font-weight: 600;
@@ -128,12 +137,12 @@
       white-space: nowrap;
     }
     
-    .nav button:hover { 
+    .navbar button:hover { 
       color: #d4af37; 
       background: rgba(212, 175, 55, 0.1);
     }
     
-    .nav button.active { 
+    .navbar button.active { 
       color: #d4af37; 
       border-bottom-color: #d4af37;
       background: rgba(212, 175, 55, 0.15);
@@ -146,11 +155,17 @@
       padding: 25px;
     }
     
-    .view { display: none; }
-    .view.active { display: block; animation: fadeIn 0.4s; }
+    .view { 
+      display: none; 
+    }
+    
+    .view.active { 
+      display: block; 
+      animation: fadeIn 0.4s ease; 
+    }
     
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
+      from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
     
@@ -161,7 +176,7 @@
       border-radius: 16px;
       padding: 25px;
       margin-bottom: 25px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
     }
     
     .card-header {
@@ -181,11 +196,12 @@
       display: grid;
       place-items: center;
       font-size: 24px;
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
     }
     
     .card-title {
       color: #d4af37;
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 800;
     }
     
@@ -217,6 +233,7 @@
       border-radius: 10px;
       font-size: 15px;
       transition: all 0.3s;
+      font-family: inherit;
     }
     
     .form-input:focus {
@@ -243,6 +260,7 @@
       font-weight: 700;
       cursor: pointer;
       transition: all 0.3s;
+      font-family: inherit;
     }
     
     .btn-primary {
@@ -271,8 +289,8 @@
     }
     
     .btn-lg {
-      padding: 18px 40px;
-      font-size: 18px;
+      padding: 16px 32px;
+      font-size: 16px;
     }
     
     /* ===== الجداول ===== */
@@ -280,12 +298,12 @@
       overflow-x: auto;
       border-radius: 12px;
       border: 1px solid #334155;
+      background: #0f172a;
     }
     
     table {
       width: 100%;
       border-collapse: collapse;
-      background: #0f172a;
     }
     
     th {
@@ -300,13 +318,17 @@
     }
     
     td {
-      padding: 16px;
+      padding: 14px 16px;
       border-bottom: 1px solid #334155;
       color: #cbd5e1;
     }
     
     tr:hover {
       background: rgba(212, 175, 55, 0.05);
+    }
+    
+    tr:last-child td {
+      border-bottom: none;
     }
     
     /* ===== الإحصائيات ===== */
@@ -321,7 +343,7 @@
       background: linear-gradient(145deg, #1e293b, #0f172a);
       border: 1px solid #334155;
       border-radius: 16px;
-      padding: 25px;
+      padding: 30px;
       text-align: center;
       position: relative;
       overflow: hidden;
@@ -334,11 +356,11 @@
       left: 0;
       right: 0;
       height: 4px;
-      background: linear-gradient(90deg, #d4af37, #b8941f);
+      background: linear-gradient(90deg, #d4af37, #fbbf24);
     }
     
     .stat-value {
-      font-size: 42px;
+      font-size: 40px;
       font-weight: 900;
       color: #d4af37;
       margin: 15px 0;
@@ -352,14 +374,6 @@
     }
     
     /* ===== الفاتورة ===== */
-    .invoice-section {
-      background: #0f172a;
-      border: 2px dashed #334155;
-      border-radius: 12px;
-      padding: 25px;
-      margin: 20px 0;
-    }
-    
     .totals-box {
       background: linear-gradient(135deg, #1e3a5f, #0f172a);
       border: 2px solid #d4af37;
@@ -378,11 +392,11 @@
     
     .total-row:last-child {
       border-bottom: none;
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 800;
       color: #d4af37;
       margin-top: 10px;
-      padding-top: 20px;
+      padding-top: 15px;
       border-top: 2px solid #d4af37;
     }
     
@@ -434,38 +448,85 @@
       opacity: 0.5;
     }
     
-    /* ===== طباعة ===== */
-    @media print {
-      body { background: white; color: black; }
-      .nav, .btn { display: none !important; }
-      .card { border: 1px solid #ddd; box-shadow: none; }
+    /* ===== للجوال ===== */
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+      }
+      
+      .header-divider {
+        width: 80%;
+        min-height: 2px;
+      }
+      
+      .header-ar, .header-en {
+        text-align: center;
+        min-width: auto;
+      }
+      
+      .header-ar h1 {
+        font-size: 32px;
+      }
+      
+      .header-en h2 {
+        font-size: 30px;
+      }
     }
   </style>
 </head>
 <body>
 
   <!-- Header -->
-  <header class="header">
-    <div class="logo-section">
-      <div class="logo-ar">
+  <header class="main-header">
+    <div class="header-content">
+      
+      <!-- النص العربي -->
+      <div class="header-ar">
         <h1>سند للاكسسوارات</h1>
-        <p>الخرطوم بحري • +249913678918</p>
+        <div class="header-details">
+          <span>✦ مسكات أبواب فاخرة</span>
+          <span>✦ كوالين أبواب خشب وحديد</span>
+          <span>✦ كوالين كهرباء ذكية بصمة</span>
+          <span>✦ مفصلات دولاب مطبخ</span>
+          <span>✦ جميع اكسسوارات الألمنيوم</span>
+          <span>✦ جملة وقطاعي</span>
+        </div>
+        <div class="header-contact">
+          📍 الخرطوم بحري | 📞 +249913678918
+        </div>
       </div>
-      <div class="divider"></div>
-      <div class="logo-en">
+      
+      <!-- الخط الفاصل -->
+      <div class="header-divider"></div>
+      
+      <!-- النص الإنجليزي -->
+      <div class="header-en">
         <h2>SANAD</h2>
-        <p>Khartoum Bahri • +249913678918</p>
+        <div class="header-details-en">
+          <span>✦ Premium Door Handles</span>
+          <span>✦ Wood & Iron Door Locks</span>
+          <span>✦ Smart Fingerprint Locks</span>
+          <span>✦ Kitchen Cabinet Hinges</span>
+          <span>✦ All Aluminum Accessories</span>
+          <span>✦ Wholesale & Retail</span>
+        </div>
+        <div class="header-contact">
+          📍 Khartoum Bahri | 📞 +249913678918
+        </div>
       </div>
+      
     </div>
   </header>
 
   <!-- Navigation -->
-  <nav class="nav">
-    <button onclick="showView('home')" id="btn-home" class="active">الرئيسية</button>
-    <button onclick="showView('invoice')" id="btn-invoice">فاتورة جديدة</button>
-    <button onclick="showView('items')" id="btn-items">البنود</button>
-    <button onclick="showView('customers')" id="btn-customers">العملاء</button>
-    <button onclick="showView('reports')" id="btn-reports">التقارير</button>
+  <nav class="navbar">
+    <button onclick="showView('home')" id="btn-home" class="active">🏠 الرئيسية</button>
+    <button onclick="showView('invoice')" id="btn-invoice">📝 فاتورة جديدة</button>
+    <button onclick="showView('items')" id="btn-items">📦 البنود</button>
+    <button onclick="showView('customers')" id="btn-customers">👥 العملاء</button>
+    <button onclick="showView('reports')" id="btn-reports">📊 التقارير</button>
   </nav>
 
   <div class="container">
@@ -542,7 +603,7 @@
           <div class="card-icon">📝</div>
           <div>
             <div class="card-title">إنشاء فاتورة جديدة</div>
-            <div class="card-subtitle">أدخل بيانات الفاتورة والبنود</div>
+            <div class="card-subtitle">أدخل بيانات الفاتورة</div>
           </div>
         </div>
 
@@ -581,7 +642,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">السعر (اختياري)</label>
-            <input type="number" id="item-price" class="form-input" placeholder="سعر البند الافتراضي">
+            <input type="number" id="item-price" class="form-input" placeholder="سعر البند">
           </div>
         </div>
 
@@ -606,7 +667,7 @@
                 <th>السعر</th>
                 <th>الكمية</th>
                 <th>الإجمالي</th>
-                <th>إجراء</th>
+                <th>حذف</th>
               </tr>
             </thead>
             <tbody id="cart-body"></tbody>
@@ -620,7 +681,7 @@
           </div>
         </div>
 
-        <div style="margin-top: 25px; display: flex; gap: 15px;">
+        <div style="margin-top: 25px; display: flex; gap: 15px; flex-wrap: wrap;">
           <button class="btn btn-primary btn-lg" onclick="saveInvoice()">
             💾 حفظ الفاتورة
           </button>
@@ -676,7 +737,7 @@
                 <th>البند</th>
                 <th>سعر البيع</th>
                 <th>المخزون</th>
-                <th>إجراء</th>
+                <th>حذف</th>
               </tr>
             </thead>
             <tbody id="items-body"></tbody>
@@ -725,7 +786,7 @@
               <tr>
                 <th>الاسم</th>
                 <th>الهاتف</th>
-                <th>إجراء</th>
+                <th>حذف</th>
               </tr>
             </thead>
             <tbody id="customers-body"></tbody>
@@ -735,68 +796,4 @@
     </div>
 
     <!-- REPORTS -->
-    <div id="reports" class="view">
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">إجمالي المبيعات</div>
-          <div class="stat-value" id="report-sales">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">عدد الفواتير</div>
-          <div class="stat-value" id="report-count">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">متوسط قيمة الفاتورة</div>
-          <div class="stat-value" id="report-avg">0</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <div class="card-icon">📊</div>
-          <div>
-            <div class="card-title">تفاصيل الفواتير</div>
-          </div>
-        </div>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>الرقم</th>
-                <th>العميل</th>
-                <th>التاريخ</th>
-                <th>المبلغ</th>
-              </tr>
-            </thead>
-            <tbody id="report-body"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <script>
-    // ===== البيانات =====
-    let items = JSON.parse(localStorage.getItem('items')) || [];
-    let customers = JSON.parse(localStorage.getItem('customers')) || [{name: 'عميل نقدي', phone: '-'}];
-    let invoices = JSON.parse(localStorage.getItem('invoices')) || [];
-    let cart = [];
-
-    // ===== التنقل =====
-    function showView(view) {
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
-      
-      document.getElementById(view).classList.add('active');
-      document.getElementById('btn-' + view).classList.add('active');
-      
-      if (view === 'home') updateHome();
-      if (view === 'invoice') {
-        updateItemSelect();
-        updateCustomerSelect();
-        document.getElementById('inv-date').valueAsDate = new Date();
-      }
-      if (view === 'items') loadItems();
-    
+    <div id="repor
