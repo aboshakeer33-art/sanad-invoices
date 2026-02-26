@@ -1,619 +1,647 @@
-/* Sanad Invoicing — Offline, LocalStorage, SDG
-   ✅ Profit is internal only (reports), never shown on invoice print/view
-   ✅ Invoice top shows Arabic categories split Right/Left
-*/
-
-const LS_KEY = "sanad_invoices_v1";
-
-const fmt = (n) => {
-  const x = Number(n || 0);
-  return x.toLocaleString("en-US") + " SDG";
+// ===== البيانات =====
+let data = {
+  settings: {
+    nameAr: 'سند لاكسسوارات الألمنيوم',
+    nameEn: 'SANAD',
+    locAr: 'الخرطوم بحري',
+    locEn: 'Khartoum Bahri',
+    phone: '+249913678918',
+    currency: 'SDG'
+  },
+  customers: [
+    { id: 1, name: 'عميل نقدي', phone: '-', notes: 'افتراضي' }
+  ],
+  items: [],
+  invoices: [],
+  returns: [],
+  cart: []
 };
-const todayISO = () => new Date().toISOString().slice(0,10);
 
-function uid(prefix="ID"){
-  return `${prefix}-${Math.random().toString(16).slice(2,8)}-${Date.now().toString(16)}`;
-}
+// ===== التهيئة =====
+document.addEventListener('DOMContentLoaded', function() {
+  loadData();
+  initNavigation();
+  initEventListeners();
+  updateUI();
+  setDefaultDate();
+  updateHomeStats();
+});
 
-function loadDB(){
-  const raw = localStorage.getItem(LS_KEY);
-  if(raw){
-    try { return JSON.parse(raw); } catch(e){}
-  }
-  // Seed
-  return {
-    settings:{
-      nameAr:"سند لاكسسوارات الألمنيوم",
-      nameEn:"SANAD Aluminum Accessories",
-      locAr:"الخرطوم بحري",
-      locEn:"Khartoum Bahri",
-      phone:"+249913678918",
-      currency:"SDG"
-    },
-    customers:[
-      { id: uid("C"), name:"عميل نقدي", phone:"", notes:"" }
-    ],
-    items:[
-      { id: uid("I"), name:"مفصلة جناح عادي", sell: 0, cost: 0, stock: 0 }
-    ],
-    invoices:[],
-    returns:[]
-  };
-}
-
-function saveDB(){
-  localStorage.setItem(LS_KEY, JSON.stringify(DB));
-}
-
-let DB = loadDB();
-
-/* ---------------- UI Helpers ---------------- */
-const $ = (id) => document.getElementById(id);
-const qsa = (sel) => Array.from(document.querySelectorAll(sel));
-
-function setActiveView(view){
-  qsa(".navBtn").forEach(b => b.classList.toggle("active", b.dataset.view === view));
-  qsa(".view").forEach(v => v.classList.toggle("active", v.id === `view-${view}`));
-}
-
-/* ---------------- Header / Settings ---------------- */
-function renderHeader(){
-  $("companyNameAr").textContent = DB.settings.nameAr || "سند لاكسسوارات الألمنيوم";
-  $("companyNameEn").textContent = DB.settings.nameEn || "SANAD";
-  $("companyLocationAr").textContent = DB.settings.locAr || "";
-  $("companyLocationEn").textContent = DB.settings.locEn || "";
-  $("companyPhoneAr").textContent = DB.settings.phone || "";
-  $("companyPhoneEn").textContent = DB.settings.phone || "";
-  $("currencyBadge").textContent = DB.settings.currency || "SDG";
-}
-
-function fillSettingsForm(){
-  $("setNameAr").value = DB.settings.nameAr || "";
-  $("setNameEn").value = DB.settings.nameEn || "";
-  $("setLocAr").value  = DB.settings.locAr  || "";
-  $("setLocEn").value  = DB.settings.locEn  || "";
-  $("setPhone").value  = DB.settings.phone  || "";
-}
-
-/* ---------------- Customers ---------------- */
-function renderCustomers(){
-  const sel = $("invCustomer");
-  sel.innerHTML = "";
-  DB.customers.forEach(c=>{
-    const opt = document.createElement("option");
-    opt.value = c.id;
-    opt.textContent = c.name;
-    sel.appendChild(opt);
-  });
-
-  const tbody = $("customersTable").querySelector("tbody");
-  tbody.innerHTML = "";
-  DB.customers.forEach(c=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${escapeHtml(c.name)}</td>
-      <td>${escapeHtml(c.phone || "")}</td>
-      <td><button class="iconBtn" data-del-cust="${c.id}">✕</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  renderReturnInvoiceSelect();
-}
-
-function addCustomer(){
-  const name = $("custName").value.trim();
-  const phone = $("custPhone").value.trim();
-  const notes = $("custNotes").value.trim();
-  if(!name) return alert("اكتب اسم العميل");
-  DB.customers.push({ id: uid("C"), name, phone, notes });
-  saveDB();
-  $("custName").value = "";
-  $("custPhone").value = "";
-  $("custNotes").value = "";
-  renderCustomers();
-}
-
-/* ---------------- Items ---------------- */
-function renderItems(){
-  const itemSel = $("lineItem");
-  itemSel.innerHTML = "";
-  DB.items.forEach(it=>{
-    const opt = document.createElement("option");
-    opt.value = it.id;
-    opt.textContent = it.name;
-    itemSel.appendChild(opt);
-  });
-
-  const retSel = $("retItem");
-  retSel.innerHTML = "";
-  DB.items.forEach(it=>{
-    const opt = document.createElement("option");
-    opt.value = it.id;
-    opt.textContent = it.name;
-    retSel.appendChild(opt);
-  });
-
-  const tbody = $("itemsTable").querySelector("tbody");
-  tbody.innerHTML = "";
-  DB.items.forEach(it=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${escapeHtml(it.name)}</td>
-      <td>${fmt(it.sell)}</td>
-      <td>${Number(it.stock||0).toLocaleString("en-US")}</td>
-      <td><button class="iconBtn" data-del-item="${it.id}">✕</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function addItem(){
-  const name = $("itemName").value.trim();
-  const sell = Number($("itemSell").value || 0);
-  const cost = Number($("itemCost").value || 0);
-  const stock = Number($("itemStock").value || 0);
-  if(!name) return alert("اكتب اسم البند");
-  DB.items.push({ id: uid("I"), name, sell, cost, stock });
-  saveDB();
-  $("itemName").value = "";
-  $("itemSell").value = 0;
-  $("itemCost").value = 0;
-  $("itemStock").value = 0;
-  renderItems();
-}
-
-/* ---------------- Invoices (Cart) ---------------- */
-let CART = []; // {itemId, qty, discount}
-
-function renderCart(){
-  const tbody = $("cartTable").querySelector("tbody");
-  tbody.innerHTML = "";
-  CART.forEach((ln, idx)=>{
-    const it = DB.items.find(x=>x.id===ln.itemId);
-    const price = it ? Number(it.sell||0) : 0;
-    const lineTotal = Math.max(0, price*ln.qty - Number(ln.discount||0));
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${escapeHtml(it?.name || "—")}</td>
-      <td>${fmt(price)}</td>
-      <td>${Number(ln.qty).toLocaleString("en-US")}</td>
-      <td>${fmt(ln.discount||0)}</td>
-      <td>${fmt(lineTotal)}</td>
-      <td><button class="iconBtn" data-del-line="${idx}">✕</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  const totals = calcCartTotals();
-  $("subTotal").textContent = fmt(totals.subtotal);
-  $("discTotal").textContent = fmt(totals.discountTotal);
-  $("grandTotal").textContent = fmt(totals.grandTotal);
-}
-
-function calcCartTotals(){
-  let subtotal = 0;
-  let discountTotal = 0;
-  CART.forEach(ln=>{
-    const it = DB.items.find(x=>x.id===ln.itemId);
-    const price = it ? Number(it.sell||0) : 0;
-    subtotal += price*Number(ln.qty||0);
-    discountTotal += Number(ln.discount||0);
-  });
-  const grandTotal = Math.max(0, subtotal - discountTotal);
-  return { subtotal, discountTotal, grandTotal };
-}
-
-function calcCartProfit(){
-  // internal profit only: (sell - cost)*qty - discount
-  let profit = 0;
-  CART.forEach(ln=>{
-    const it = DB.items.find(x=>x.id===ln.itemId);
-    if(!it) return;
-    const sell = Number(it.sell||0);
-    const cost = Number(it.cost||0);
-    profit += (sell - cost) * Number(ln.qty||0) - Number(ln.discount||0);
-  });
-  return profit;
-}
-
-function addLine(){
-  const itemId = $("lineItem").value;
-  const qty = Math.max(1, Number($("lineQty").value || 1));
-  const discount = Math.max(0, Number($("lineDiscount").value || 0));
-  if(!itemId) return alert("اختر بند");
-  CART.push({ itemId, qty, discount });
-  $("lineQty").value = 1;
-  $("lineDiscount").value = 0;
-  renderCart();
-}
-
-function clearCart(){
-  CART = [];
-  renderCart();
-}
-
-function saveInvoice(){
-  if(CART.length === 0) return alert("السلة فاضية");
-  const customerId = $("invCustomer").value;
-  const date = $("invDate").value || todayISO();
-
-  // check stock
-  for(const ln of CART){
-    const it = DB.items.find(x=>x.id===ln.itemId);
-    if(!it) continue;
-    const need = Number(ln.qty||0);
-    if(Number(it.stock||0) < need){
-      return alert(`المخزون غير كافي للبند: ${it.name}`);
-    }
-  }
-
-  // deduct stock
-  CART.forEach(ln=>{
-    const it = DB.items.find(x=>x.id===ln.itemId);
-    if(!it) return;
-    it.stock = Number(it.stock||0) - Number(ln.qty||0);
-  });
-
-  const totals = calcCartTotals();
-  const profit = calcCartProfit(); // internal
-  const invNo = (DB.invoices.length + 1).toString().padStart(5,"0");
-
-  DB.invoices.unshift({
-    id: uid("INV"),
-    no: invNo,
-    date,
-    customerId,
-    lines: CART.map(x=>({...x})),
-    subtotal: totals.subtotal,
-    discountTotal: totals.discountTotal,
-    grandTotal: totals.grandTotal,
-    profit // ✅ stored but never shown on invoice print/view
-  });
-
-  saveDB();
-  clearCart();
-  renderItems();
-  renderInvoices();
-  renderReportsQuick();
-  renderReturnInvoiceSelect();
-  alert(`تم حفظ الفاتورة رقم ${invNo}`);
-}
-
-function renderInvoices(){
-  const search = ($("invSearch").value || "").trim().toLowerCase();
-  const tbody = $("invoicesTable").querySelector("tbody");
-  tbody.innerHTML = "";
-
-  DB.invoices
-    .filter(inv=>{
-      const cust = DB.customers.find(c=>c.id===inv.customerId);
-      const s = `${inv.no} ${cust?.name||""}`.toLowerCase();
-      return !search || s.includes(search);
-    })
-    .forEach(inv=>{
-      const cust = DB.customers.find(c=>c.id===inv.customerId);
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${escapeHtml(inv.no)}</td>
-        <td>${escapeHtml(cust?.name || "—")}</td>
-        <td>${escapeHtml(inv.date)}</td>
-        <td>${fmt(inv.grandTotal)}</td>
-        <td>
-          <button class="iconBtn" data-print-inv="${inv.id}">🖨</button>
-          <button class="iconBtn" data-del-inv="${inv.id}">✕</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
+// ===== التنقل بين الصفحات =====
+function initNavigation() {
+  const navBtns = document.querySelectorAll('.navBtn');
+  const views = document.querySelectorAll('.view');
+  
+  navBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const viewName = this.dataset.view;
+      switchView(viewName);
     });
-
-  renderReturnInvoiceSelect();
+  });
 }
 
-function printCurrentOrSelected(invoiceId=null){
-  let inv = null;
-  if(invoiceId){
-    inv = DB.invoices.find(x=>x.id===invoiceId);
-  }else{
-    if(CART.length === 0) return alert("السلة فاضية");
+function switchView(viewName) {
+  // إخفاء كل الصفحات
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.navBtn').forEach(b => b.classList.remove('active'));
+  
+  // إظهار الصفحة المطلوبة
+  const targetView = document.getElementById('view-' + viewName);
+  const targetBtn = document.querySelector('[data-view="' + viewName + '"]');
+  
+  if (targetView) targetView.classList.add('active');
+  if (targetBtn) targetBtn.classList.add('active');
+  
+  // تحديث البيانات حسب الصفحة
+  if (viewName === 'invoices') {
+    refreshInvoiceForm();
+  } else if (viewName === 'home') {
+    updateHomeStats();
+    loadRecentInvoices();
+  } else if (viewName === 'items') {
+    loadItemsTable();
+  } else if (viewName === 'customers') {
+    loadCustomersTable();
+  } else if (viewName === 'returns') {
+    loadReturnsData();
+  } else if (viewName === 'reports') {
+    loadReports();
+  } else if (viewName === 'settings') {
+    loadSettings();
   }
+}
 
-  const s = DB.settings;
-  const cust = inv ? DB.customers.find(c=>c.id===inv.customerId) : DB.customers.find(c=>c.id===$("invCustomer").value);
-  const date = inv ? inv.date : ($("invDate").value || todayISO());
-  const no = inv ? inv.no : "—";
+// ===== مستمعي الأحداث =====
+function initEventListeners() {
+  // الفواتير
+  document.getElementById('addLineBtn')?.addEventListener('click', addLineToCart);
+  document.getElementById('clearCartBtn')?.addEventListener('click', clearCart);
+  document.getElementById('saveInvoiceBtn')?.addEventListener('click', saveInvoice);
+  document.getElementById('printInvoiceBtn')?.addEventListener('click', printInvoice);
+  document.getElementById('invSearch')?.addEventListener('input', searchInvoices);
+  
+  // البنود
+  document.getElementById('addItemBtn')?.addEventListener('click', addItem);
+  
+  // العملاء
+  document.getElementById('addCustomerBtn')?.addEventListener('click', addCustomer);
+  
+  // المرتجعات
+  document.getElementById('addReturnBtn')?.addEventListener('click', addReturn);
+  document.getElementById('retInvoice')?.addEventListener('change', onReturnInvoiceChange);
+  
+  // التقارير
+  document.getElementById('runReportBtn')?.addEventListener('click', runReport);
+  
+  // الإعدادات
+  document.getElementById('saveSettingsBtn')?.addEventListener('click', saveSettings);
+  document.getElementById('resetBtn')?.addEventListener('click', resetAllData);
+}
 
-  const lines = inv ? inv.lines : CART;
-  const totals = inv ? {subtotal:inv.subtotal, discountTotal:inv.discountTotal, grandTotal:inv.grandTotal} : calcCartTotals();
+// ===== الفواتير =====
+function refreshInvoiceForm() {
+  // تحديث قائمة العملاء
+  const custSelect = document.getElementById('invCustomer');
+  if (custSelect) {
+    custSelect.innerHTML = data.customers.map(c => 
+      `<option value="${c.id}">${c.name}</option>`
+    ).join('');
+  }
+  
+  // تحديث قائمة البنود
+  const itemSelect = document.getElementById('lineItem');
+  if (itemSelect) {
+    itemSelect.innerHTML = data.items.map(i => 
+      `<option value="${i.id}">${i.name} - ${i.sell} ${data.settings.currency}</option>`
+    ).join('');
+  }
+  
+  // تحديث جدول السلة
+  updateCartTable();
+  updateTotals();
+  
+  // تحديث الفواتير المحفوظة
+  loadInvoicesTable();
+}
 
-  // ✅ الأقسام عربي فقط وتقسيمها يمين/يسار أعلى الفاتورة
-  const catsRight = [
-    "مفصلات دواليب مطبخ",
-    "مفصلات أبواب حديد",
-    "كوالين أبواب خشب دفن"
-  ];
-  const catsLeft = [
-    "كوالين كهرباء (ذكية بصمة)",
-    "جملة وقطاعي"
-  ];
+function addLineToCart() {
+  const itemId = document.getElementById('lineItem')?.value;
+  const qty = parseInt(document.getElementById('lineQty')?.value) || 1;
+  const discount = parseFloat(document.getElementById('lineDiscount')?.value) || 0;
+  
+  if (!itemId) {
+    alert('اختر بند أولاً');
+    return;
+  }
+  
+  const item = data.items.find(i => i.id == itemId);
+  if (!item) return;
+  
+  if (qty > item.stock) {
+    alert('الكمية المطلوبة أكبر من المخزون المتاح: ' + item.stock);
+    return;
+  }
+  
+  const line = {
+    id: Date.now(),
+    itemId: item.id,
+    name: item.name,
+    price: item.sell,
+    qty: qty,
+    discount: discount,
+    total: (item.sell * qty) - discount,
+    cost: item.cost
+  };
+  
+  data.cart.push(line);
+  updateCartTable();
+  updateTotals();
+  
+  // إعادة تعيين الكمية والخصم
+  document.getElementById('lineQty').value = 1;
+  document.getElementById('lineDiscount').value = 0;
+}
 
-  // ✅ PROFIT NOT INCLUDED
+function updateCartTable() {
+  const tbody = document.querySelector('#cartTable tbody');
+  if (!tbody) return;
+  
+  tbody.innerHTML = data.cart.map((line, index) => `
+    <tr>
+      <td>${line.name}</td>
+      <td>${line.price}</td>
+      <td>${line.qty}</td>
+      <td>${line.discount}</td>
+      <td><strong>${line.total}</strong></td>
+      <td>
+        <button class="iconBtn" onclick="removeCartLine(${index})">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function removeCartLine(index) {
+  data.cart.splice(index, 1);
+  updateCartTable();
+  updateTotals();
+}
+
+function clearCart() {
+  if (data.cart.length === 0) return;
+  if (!confirm('تأكيد تفريغ السلة؟')) return;
+  
+  data.cart = [];
+  updateCartTable();
+  updateTotals();
+}
+
+function updateTotals() {
+  const subTotal = data.cart.reduce((sum, line) => sum + (line.price * line.qty), 0);
+  const discTotal = data.cart.reduce((sum, line) => sum + line.discount, 0);
+  const grandTotal = data.cart.reduce((sum, line) => sum + line.total, 0);
+  
+  const subEl = document.getElementById('subTotal');
+  const discEl = document.getElementById('discTotal');
+  const grandEl = document.getElementById('grandTotal');
+  
+  if (subEl) subEl.textContent = subTotal.toLocaleString() + ' ' + data.settings.currency;
+  if (discEl) discEl.textContent = discTotal.toLocaleString() + ' ' + data.settings.currency;
+  if (grandEl) grandEl.textContent = grandTotal.toLocaleString() + ' ' + data.settings.currency;
+}
+
+function saveInvoice() {
+  if (data.cart.length === 0) {
+    alert('السلة فارغة! أضف بنود أولاً');
+    return;
+  }
+  
+  const customerId = document.getElementById('invCustomer')?.value;
+  const date = document.getElementById('invDate')?.value;
+  
+  if (!date) {
+    alert('اختر التاريخ');
+    return;
+  }
+  
+  const customer = data.customers.find(c => c.id == customerId);
+  
+  // حساب الربح
+  const profit = data.cart.reduce((sum, line) => 
+    sum + ((line.price - line.cost) * line.qty), 0
+  );
+  
+  const invoice = {
+    id: Date.now(),
+    number: 'INV-' + String(data.invoices.length + 1).padStart(4, '0'),
+    customerId: customerId,
+    customerName: customer ? customer.name : 'عميل نقدي',
+    date: date,
+    items: [...data.cart],
+    subTotal: data.cart.reduce((sum, line) => sum + (line.price * line.qty), 0),
+    discount: data.cart.reduce((sum, line) => sum + line.discount, 0),
+    total: data.cart.reduce((sum, line) => sum + line.total, 0),
+    profit: profit
+  };
+  
+  // خصم من المخزون
+  data.cart.forEach(line => {
+    const item = data.items.find(i => i.id == line.itemId);
+    if (item) item.stock -= line.qty;
+  });
+  
+  data.invoices.push(invoice);
+  data.cart = [];
+  
+  saveData();
+  updateCartTable();
+  updateTotals();
+  loadInvoicesTable();
+  updateHomeStats();
+  
+  alert('✅ تم حفظ الفاتورة بنجاح!\nرقم الفاتورة: ' + invoice.number);
+}
+
+function loadInvoicesTable() {
+  const tbody = document.querySelector('#invoicesTable tbody');
+  if (!tbody) return;
+  
+  tbody.innerHTML = data.invoices.slice().reverse().map(inv => `
+    <tr>
+      <td><strong>${inv.number}</strong></td>
+      <td>${inv.customerName}</td>
+      <td>${inv.date}</td>
+      <td><strong style="color: var(--gold)">${inv.total.toLocaleString()} ${data.settings.currency}</strong></td>
+      <td>
+        <button class="iconBtn" onclick="viewInvoice(${inv.id})">👁️</button>
+        <button class="iconBtn" onclick="printInvoiceById(${inv.id})">🖨️</button>
+        <button class="iconBtn" onclick="deleteInvoice(${inv.id})" style="color: #ef4444">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function searchInvoices() {
+  const term = document.getElementById('invSearch')?.value.toLowerCase();
+  if (!term) {
+    loadInvoicesTable();
+    return;
+  }
+  
+  const filtered = data.invoices.filter(inv => 
+    inv.number.toLowerCase().includes(term) ||
+    inv.customerName.toLowerCase().includes(term)
+  );
+  
+  const tbody = document.querySelector('#invoicesTable tbody');
+  if (!tbody) return;
+  
+  tbody.innerHTML = filtered.slice().reverse().map(inv => `
+    <tr>
+      <td><strong>${inv.number}</strong></td>
+      <td>${inv.customerName}</td>
+      <td>${inv.date}</td>
+      <td><strong style="color: var(--gold)">${inv.total.toLocaleString()} ${data.settings.currency}</strong></td>
+      <td>
+        <button class="iconBtn" onclick="viewInvoice(${inv.id})">👁️</button>
+        <button class="iconBtn" onclick="printInvoiceById(${inv.id})">🖨️</button>
+        <button class="iconBtn" onclick="deleteInvoice(${inv.id})" style="color: #ef4444">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function viewInvoice(id) {
+  const inv = data.invoices.find(i => i.id === id);
+  if (!inv) return;
+  
+  let itemsHtml = inv.items.map(item => `
+    <tr>
+      <td>${item.name}</td>
+      <td>${item.price}</td>
+      <td>${item.qty}</td>
+      <td>${item.discount}</td>
+      <td>${item.total}</td>
+    </tr>
+  `).join('');
+  
   const html = `
-    <div class="card" style="background:#fff;border:1px solid #ddd;border-radius:14px;padding:14px;color:#111">
-      <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
-        <div style="direction:ltr;text-align:left">
-          <div style="font-weight:900;font-size:20px">${escapeHtml(s.nameEn||"SANAD")}</div>
-          <div style="font-size:12px;color:#555">${escapeHtml(s.locEn||"")} • ${escapeHtml(s.phone||"")}</div>
-        </div>
-        <div style="direction:rtl;text-align:right">
-          <div style="font-weight:900;font-size:26px">${escapeHtml(s.nameAr||"سند لاكسسوارات الألمنيوم")}</div>
-          <div style="font-size:12px;color:#555">${escapeHtml(s.locAr||"")} • ${escapeHtml(s.phone||"")}</div>
-        </div>
-      </div>
-
-      <hr style="border:none;border-top:1px solid #ddd;margin:10px 0"/>
-
-      <!-- ✅ الأقسام (عربي فقط) يمين/يسار فوق -->
-      <div style="display:flex;justify-content:space-between;gap:12px;margin:10px 0">
-        <div style="direction:rtl;text-align:right;width:48%;border:1px solid #ddd;border-radius:12px;padding:10px">
-          <div style="font-weight:900;margin-bottom:6px">الأقسام</div>
-          <ul style="margin:0;padding-right:18px">
-            ${catsRight.map(x=>`<li style="margin:4px 0">${escapeHtml(x)}</li>`).join("")}
-          </ul>
-        </div>
-
-        <div style="direction:rtl;text-align:right;width:48%;border:1px solid #ddd;border-radius:12px;padding:10px">
-          <div style="font-weight:900;margin-bottom:6px">الأقسام</div>
-          <ul style="margin:0;padding-right:18px">
-            ${catsLeft.map(x=>`<li style="margin:4px 0">${escapeHtml(x)}</li>`).join("")}
-          </ul>
-        </div>
-      </div>
-
-      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
-        <div style="direction:rtl"><b>رقم الفاتورة:</b> ${escapeHtml(no)} • <b>التاريخ:</b> ${escapeHtml(date)}</div>
-        <div style="direction:ltr"><b>Invoice No:</b> ${escapeHtml(no)} • <b>Date:</b> ${escapeHtml(date)}</div>
-      </div>
-
-      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:6px">
-        <div style="direction:rtl"><b>العميل:</b> ${escapeHtml(cust?.name||"")}</div>
-        <div style="direction:ltr"><b>Customer:</b> ${escapeHtml(cust?.name||"")}</div>
-      </div>
-
-      <div style="margin-top:10px;border:1px solid #ddd;border-radius:12px;overflow:hidden">
-        <table style="width:100%;border-collapse:collapse">
-          <thead>
-            <tr style="background:#f7f7f7">
-              <th style="text-align:right;padding:8px;border-bottom:1px solid #ddd">البند / Item</th>
-              <th style="text-align:right;padding:8px;border-bottom:1px solid #ddd">سعر / Price</th>
-              <th style="text-align:right;padding:8px;border-bottom:1px solid #ddd">كمية / Qty</th>
-              <th style="text-align:right;padding:8px;border-bottom:1px solid #ddd">خصم / Disc</th>
-              <th style="text-align:right;padding:8px;border-bottom:1px solid #ddd">الإجمالي / Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${lines.map(ln=>{
-              const it = DB.items.find(x=>x.id===ln.itemId);
-              const price = it ? Number(it.sell||0) : 0;
-              const total = Math.max(0, price*Number(ln.qty||0) - Number(ln.discount||0));
-              return `
-                <tr>
-                  <td style="padding:8px;border-bottom:1px solid #eee">${escapeHtml(it?.name||"—")}</td>
-                  <td style="padding:8px;border-bottom:1px solid #eee">${fmt(price)}</td>
-                  <td style="padding:8px;border-bottom:1px solid #eee">${Number(ln.qty||0).toLocaleString("en-US")}</td>
-                  <td style="padding:8px;border-bottom:1px solid #eee">${fmt(ln.discount||0)}</td>
-                  <td style="padding:8px;border-bottom:1px solid #eee">${fmt(total)}</td>
-                </tr>
-              `;
-            }).join("")}
-          </tbody>
-        </table>
-      </div>
-
-      <div style="margin-top:10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
-        <div style="direction:rtl">
-          <div><b>الإجمالي:</b> ${fmt(totals.subtotal)}</div>
-          <div><b>الخصم:</b> ${fmt(totals.discountTotal)}</div>
-          <div style="font-size:18px"><b>المبلغ النهائي:</b> ${fmt(totals.grandTotal)}</div>
-        </div>
-        <div style="direction:ltr;text-align:left">
-          <div><b>Subtotal:</b> ${fmt(totals.subtotal)}</div>
-          <div><b>Discount:</b> ${fmt(totals.discountTotal)}</div>
-          <div style="font-size:18px"><b>Grand Total:</b> ${fmt(totals.grandTotal)}</div>
-        </div>
-      </div>
-
-      <div style="margin-top:10px;color:#666;font-size:12px;display:flex;justify-content:space-between;gap:10px">
-        <div style="direction:rtl">شكراً لتعاملكم مع سند</div>
-        <div style="direction:ltr">Thank you for choosing Sanad</div>
+    <div style="padding: 20px;">
+      <h2 style="color: var(--gold); margin-bottom: 20px;">فاتورة ${inv.number}</h2>
+      <p><strong>العميل:</strong> ${inv.customerName}</p>
+      <p><strong>التاريخ:</strong> ${inv.date}</p>
+      <hr style="margin: 20px 0; border-color: var(--gold);">
+      <table class="tbl" style="width: 100%;">
+        <thead>
+          <tr>
+            <th>البند</th>
+            <th>السعر</th>
+            <th>الكمية</th>
+            <th>الخصم</th>
+            <th>الإجمالي</th>
+          </tr>
+        </thead>
+        <tbody>${itemsHtml}</tbody>
+      </table>
+      <div style="margin-top: 20px; text-align: left; font-size: 18px;">
+        <p><strong>الإجمالي:</strong> ${inv.subTotal} ${data.settings.currency}</p>
+        <p><strong>الخصم:</strong> ${inv.discount} ${data.settings.currency}</p>
+        <p style="font-size: 24px; color: var(--gold);"><strong>المبلغ النهائي:</strong> ${inv.total} ${data.settings.currency}</p>
       </div>
     </div>
   `;
-
-  const printArea = $("printArea");
-  printArea.innerHTML = html;
-  window.print();
+  
+  // عرض في نافذة منبثقة
+  const popup = window.open('', '_blank', 'width=800,height=600');
+  popup.document.write(`
+    <html dir="rtl">
+    <head>
+      <title>فاتورة ${inv.number}</title>
+      <style>
+        body { font-family: Arial; background: #0a0e1a; color: #f8fafc; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border-bottom: 1px solid #333; text-align: right; }
+        th { background: #1e3a8a; color: #d4af37; }
+      </style>
+    </head>
+    <body>${html}</body>
+    </html>
+  `);
 }
 
-/* ---------------- Returns ---------------- */
-function renderReturnInvoiceSelect(){
-  const sel = $("retInvoice");
-  if(!sel) return;
-  const prev = sel.value;
-  sel.innerHTML = "";
-  const opt0 = document.createElement("option");
-  opt0.value = "";
-  opt0.textContent = "—";
-  sel.appendChild(opt0);
-
-  DB.invoices.forEach(inv=>{
-    const cust = DB.customers.find(c=>c.id===inv.customerId);
-    const opt = document.createElement("option");
-    opt.value = inv.id;
-    opt.textContent = `#${inv.no} — ${cust?.name||""} — ${inv.date}`;
-    sel.appendChild(opt);
-  });
-
-  sel.value = prev || "";
-}
-
-function addReturn(){
-  const invoiceId = $("retInvoice").value || null;
-  const itemId = $("retItem").value;
-  const qty = Math.max(1, Number($("retQty").value || 1));
-  const reason = ($("retReason").value || "").trim();
-
-  const it = DB.items.find(x=>x.id===itemId);
-  if(!it) return alert("اختر بند صحيح");
-
-  const amount = Number(it.sell||0) * qty;
-
-  it.stock = Number(it.stock||0) + qty;
-
-  DB.returns.unshift({
-    id: uid("RET"),
-    date: todayISO(),
-    invoiceId,
-    itemId,
-    qty,
-    amount,
-    reason
-  });
-
-  saveDB();
-  $("retQty").value = 1;
-  $("retReason").value = "";
-  renderItems();
-  renderReturns();
-  renderReportsQuick();
-  alert("تم تسجيل المرتجع");
-}
-
-function renderReturns(){
-  const tbody = $("returnsTable").querySelector("tbody");
-  tbody.innerHTML = "";
-  DB.returns.forEach(r=>{
-    const inv = r.invoiceId ? DB.invoices.find(x=>x.id===r.invoiceId) : null;
-    const it = DB.items.find(x=>x.id===r.itemId);
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${escapeHtml(r.date)}</td>
-      <td>${inv ? escapeHtml(inv.no) : "—"}</td>
-      <td>${escapeHtml(it?.name||"—")}</td>
-      <td>${Number(r.qty||0).toLocaleString("en-US")}</td>
-      <td>${fmt(r.amount||0)}</td>
-      <td><button class="iconBtn" data-del-ret="${r.id}">✕</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-/* ---------------- Reports ---------------- */
-function renderReportsQuick(){
-  let sales = 0;
-  let profit = 0;
-  let invCount = 0;
-
-  const returnsTotal = DB.returns.reduce((a,r)=>a+Number(r.amount||0),0);
-
-  DB.invoices.forEach(inv=>{
-    invCount++;
-    sales += Number(inv.grandTotal||0);
-    profit += Number(inv.profit||0);
-  });
-
-  sales = Math.max(0, sales - returnsTotal);
-
-  $("repSales").textContent = fmt(sales);
-  $("repInvCount").textContent = invCount.toLocaleString("en-US");
-  $("repProfit").textContent = fmt(profit); // internal only
-}
-
-function runReport(){
-  const from = $("repFrom").value || "0000-01-01";
-  const to = $("repTo").value || "9999-12-31";
-
-  const list = DB.invoices
-    .filter(inv => inv.date >= from && inv.date <= to)
-    .map(inv=>{
-      const cust = DB.customers.find(c=>c.id===inv.customerId);
-      return {
-        date: inv.date,
-        no: inv.no,
-        customer: cust?.name || "—",
-        sales: Number(inv.grandTotal||0),
-        profit: Number(inv.profit||0)
-      };
+function deleteInvoice(id) {
+  if (!confirm('حذف الفاتورة نهائياً؟')) return;
+  
+  const index = data.invoices.findIndex(i => i.id === id);
+  if (index > -1) {
+    // إرجاع المخزون
+    data.invoices[index].items.forEach(line => {
+      const item = data.items.find(i => i.id == line.itemId);
+      if (item) item.stock += line.qty;
     });
-
-  const tbody = $("reportTable").querySelector("tbody");
-  tbody.innerHTML = "";
-  list.forEach(r=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${escapeHtml(r.date)}</td>
-      <td>${escapeHtml(r.no)}</td>
-      <td>${escapeHtml(r.customer)}</td>
-      <td>${fmt(r.sales)}</td>
-      <td>${fmt(r.profit)}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-/* ---------------- Delete handlers ---------------- */
-function deleteInvoice(id){
-  const inv = DB.invoices.find(x=>x.id===id);
-  if(!inv) return;
-
-  inv.lines.forEach(ln=>{
-    const it = DB.items.find(x=>x.id===ln.itemId);
-    if(!it) return;
-    it.stock = Number(it.stock||0) + Number(ln.qty||0);
-  });
-
-  DB.returns.forEach(r=>{
-    if(r.invoiceId === id) r.invoiceId = null;
-  });
-
-  DB.invoices = DB.invoices.filter(x=>x.id!==id);
-  saveDB();
-  renderItems();
-  renderInvoices();
-  renderReturnInvoiceSelect();
-  renderReportsQuick();
-}
-
-function deleteReturn(id){
-  const r = DB.returns.find(x=>x.id===id);
-  if(!r) return;
-  const it = DB.items.find(x=>x.id===r.itemId);
-  if(it){
-    it.stock = Math.max(0, Number(it.stock||0) - Number(r.qty||0));
+    
+    data.invoices.splice(index, 1);
+    saveData();
+    loadInvoicesTable();
+    updateHomeStats();
   }
-  DB.returns = DB.returns.filter(x=>x.id!==id);
-  saveDB();
-  renderItems();
-  renderReturns();
-  renderReportsQuick();
 }
 
-function deleteItem(id){
-  const used = DB.invoices.some(inv => inv.lines.some(ln=>ln.itemId===id));
-  if(used) return alert("لا يمكن حذف بند مستخدم في فواتير محفوظة");
-  DB.items = DB.items.filter(x=>x.id!==id);
-  saveDB();
-  renderItems();
-  renderCart();
+// ===== الطباعة =====
+function printInvoice() {
+  if (data.cart.length === 0) {
+    alert('السلة فارغة!');
+    return;
+  }
+  
+  generatePrintContent(data.cart, {
+    subTotal: data.cart.reduce((sum, line) => sum + (line.price * line.qty), 0),
+    discount: data.cart.reduce((sum, line) => sum + line.discount, 0),
+    total: data.cart.reduce((sum, line) => sum + line.total, 0)
+  }, 'فاتورة جديدة');
 }
 
-function deleteCustomer(id){
-  const used = DB.invoices.some(inv => inv.customerId === id);
-  if(used) return alert("لا يمكن حذف عميل مرتبط بفواتير");
-  if(DB.customers.length<=1) return alert("لا يمكن حذف آخر عميل");
-  DB.customers = DB.customers.filter(x=>x.id!==id);
-  saveDB();
-  renderCustomers();
+function printInvoiceById(id) {
+  const inv = data.invoices.find(i => i.id === id);
+  if (!inv) return;
+  
+  generatePrintContent(inv.items, {
+    subTotal: inv.subTotal,
+    discount: inv.discount,
+    total: inv.total
+  }, inv.number, inv.customerName, inv.date);
 }
 
-/* ---------------- 
+function generatePrintContent(items, totals, invNumber, customerName, date) {
+  const printArea = document.getElementById('printArea');
+  const printContent = document.getElementById('printContent');
+  
+  const today = date || new Date().toISOString().split('T')[0];
+  const custName = customerName || document.getElementById('invCustomer')?.selectedOptions[0]?.text || 'عميل نقدي';
+  
+  let itemsHtml = items.map(item => `
+    <tr>
+      <td style="padding: 12px; border-bottom: 1px solid #ddd;">${item.name}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: center;">${item.price}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: center;">${item.qty}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: center;">${item.discount}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: left;"><strong>${item.total}</strong></td>
+    </tr>
+  `).join('');
+  
+  printContent.innerHTML = `
+    <div style="font-family: Arial; max-width: 800px; margin: 0 auto;">
+      <!-- Header -->
+      <div style="text-align: center; padding-bottom: 20px; border-bottom: 3px solid #1e3a8a; margin-bottom: 30px;">
+        <h1 style="color: #1e3a8a; font-size: 32px; margin: 0;">${data.settings.nameAr}</h1>
+        <h2 style="color: #d4af37; font-size: 20px; margin: 10px 0;">${data.settings.nameEn}</h2>
+        <p style="color: #666; margin: 5px 0;">
+          📍 ${data.settings.locAr} | ${data.settings.locEn}<br>
+          📞 ${data.settings.phone}
+        </p>
+      </div>
+      
+      <!-- Invoice Info -->
+      <div style="display: flex; justify-content: space-between; margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+        <div>
+          <p><strong>رقم الفاتورة:</strong> ${invNumber}</p>
+          <p><strong>التاريخ:</strong> ${today}</p>
+        </div>
+        <div style="text-align: left;">
+          <p><strong>العميل:</strong> ${custName}</p>
+        </div>
+      </div>
+      
+      <!-- Items Table -->
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+        <thead>
+          <tr style="background: #1e3a8a; color: white;">
+            <th style="padding: 15px; text-align: right;">البند</th>
+            <th style="padding: 15px; text-align: center;">السعر</th>
+            <th style="padding: 15px; text-align: center;">الكمية</th>
+            <th style="padding: 15px; text-align: center;">الخصم</th>
+            <th style="padding: 15px; text-align: left;">الإجمالي</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsHtml}
+        </tbody>
+      </table>
+      
+      <!-- Totals -->
+      <div style="width: 300px; margin-right: auto; margin-left: 0; background: #f8f9fa; padding: 20px; border-radius: 10px; border: 2px solid #d4af37;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+          <span>الإجمالي:</span>
+          <span>${totals.subTotal} ${data.settings.currency}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+          <span>الخصم:</span>
+          <span>${totals.discount} ${data.settings.currency}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 20px; font-weight: bold; color: #1e3a8a; border-top: 2px solid #d4af37; padding-top: 10px; margin-top: 10px;">
+          <span>المبلغ النهائي:</span>
+          <span>${totals.total} ${data.settings.currency}</span>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div style="text-align: center; margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; color: #666;">
+        <p>شكراً لتعاملكم معنا</p>
+        <p style="font-size: 12px; margin-top: 10px;">${data.settings.nameAr} - ${data.settings.phone}</p>
+      </div>
+    </div>
+  `;
+  
+  // فتح نافذة الطباعة
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <html dir="rtl">
+    <head>
+      <title>فاتورة ${invNumber}</title>
+      <style>
+        @media print {
+          body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+        }
+      </style>
+    </head>
+    <body style="margin: 0; padding: 20px; background: white;">
+      ${printContent.innerHTML}
+      <script>
+        window.onload = function() { window.print(); }
+      <\/script>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+}
+
+// ===== البنود =====
+function addItem() {
+  const name = document.getElementById('itemName')?.value.trim();
+  const sell = parseFloat(document.getElementById('itemSell')?.value) || 0;
+  const cost = parseFloat(document.getElementById('itemCost')?.value) || 0;
+  const stock = parseInt(document.getElementById('itemStock')?.value) || 0;
+  
+  if (!name) {
+    alert('أدخل اسم البند');
+    return;
+  }
+  
+  if (sell <= 0) {
+    alert('أدخل سعر البيع');
+    return;
+  }
+  
+  const item = {
+    id: Date.now(),
+    name: name,
+    sell: sell,
+    cost: cost,
+    stock: stock
+  };
+  
+  data.items.push(item);
+  saveData();
+  
+  // إعادة تعيين الحقول
+  document.getElementById('itemName').value = '';
+  document.getElementById('itemSell').value = 0;
+  document.getElementById('itemCost').value = 0;
+  document.getElementById('itemStock').value = 0;
+  
+  loadItemsTable();
+  alert('✅ تم إضافة البند بنجاح');
+}
+
+function loadItemsTable() {
+  const tbody = document.querySelector('#itemsTable tbody');
+  if (!tbody) return;
+  
+  tbody.innerHTML = data.items.map(item => `
+    <tr>
+      <td>${item.name}</td>
+      <td style="color: var(--gold); font-weight: bold;">${item.sell} ${data.settings.currency}</td>
+      <td>${item.stock}</td>
+      <td>
+        <button class="iconBtn" onclick="deleteItem(${item.id})" style="color: #ef4444">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function deleteItem(id) {
+  if (!confirm('حذف البند؟')) return;
+  
+  const index = data.items.findIndex(i => i.id === id);
+  if (index > -1) {
+    data.items.splice(index, 1);
+    saveData();
+    loadItemsTable();
+  }
+}
+
+// ===== العملاء =====
+function addCustomer() {
+  const name = document.getElementById('custName')?.value.trim();
+  const phone = document.getElementById('custPhone')?.value.trim();
+  const notes = document.getElementById('custNotes')?.value.trim();
+  
+  if (!name) {
+    alert('أدخل اسم العميل');
+    return;
+  }
+  
+  const customer = {
+    id: Date.now(),
+    name: name,
+    phone: phone || '-',
+    notes: notes || ''
+  };
+  
+  data.customers.push(customer);
+  saveData();
+  
+  document.getElementById('custName').value = '';
+  document.getElementById('custPhone').value = '';
+  document.getElementById('custNotes').value = '';
+  
+  loadCustomersTable();
+  alert('✅ تم إضافة العميل بنجاح');
+}
+
+function loadCustomersTable() {
+  const tbody = document.querySelector('#customersTable tbody');
+  if (!tbody) return;
+  
+  tbody.innerHTML = data.customers.filter(c => c.id !== 1).map(c => `
+    <tr>
+      <td>${c.name}</td>
+      <td>${c.phone}</td>
+      <td>
+        <button class="iconBtn" onclick="deleteCustomer(${c.id})" style="color: #ef4444">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function deleteCustomer(id) {
+  if (!confirm('حذف العميل؟')) return;
+  
+  const index = data.customers.findIndex(c => c.id === id);
+  if (index > -1) {
+    data.customers.splice(index, 1);
+    saveData();
+    loadCustomersTable();
+  }
+}
+
+// ===== المرتجعات =====
+function loadReturnsData() {
+  const invSelect = document.getElementById('retInvoice');
+  if (invSelect) {
+    invSelect.innerHTML = data.invoices.map(inv => 
+      `<option value="${inv.id}">${inv.number} - ${inv.customerName}</option>`
+    ).join('');
+  }
+  
+  onReturnInvoiceChange();
+  loadReturnsTa
