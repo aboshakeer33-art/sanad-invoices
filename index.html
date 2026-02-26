@@ -1,9 +1,9 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>سند | Sanad — الفواتير</title>
+  <title>سند | Sanad — نظام الفواتير</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -11,7 +11,9 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="brand">
-        <div class="brandMark">S</div>
+        <div class="brandMark">
+          <img src="logo.png" alt="سند" id="sidebarLogo" onerror="this.style.display='none'; this.parentElement.innerText='S'" />
+        </div>
         <div class="brandText">
           <div class="brandNameAr">سند</div>
           <div class="brandNameEn">SANAD</div>
@@ -19,20 +21,23 @@
       </div>
 
       <nav class="nav">
-        <button class="navBtn active" data-view="invoices">
-          <span class="ar">الفواتير</span><span class="en">Invoices</span>
+        <button class="navBtn active" data-view="home">
+          <span class="ar">الرئيسية</span><span class="en">Home</span>
+        </button>
+        <button class="navBtn" data-view="invoices">
+          <span class="ar">إنشاء فاتورة</span><span class="en">New Invoice</span>
         </button>
         <button class="navBtn" data-view="returns">
           <span class="ar">المرتجعات</span><span class="en">Returns</span>
         </button>
         <button class="navBtn" data-view="items">
-          <span class="ar">إضافة بنود</span><span class="en">Items</span>
+          <span class="ar">البنود والمخزون</span><span class="en">Items</span>
         </button>
         <button class="navBtn" data-view="customers">
           <span class="ar">العملاء</span><span class="en">Customers</span>
         </button>
         <button class="navBtn" data-view="reports">
-          <span class="ar">تقارير البيع</span><span class="en">Sales Reports</span>
+          <span class="ar">التقارير</span><span class="en">Reports</span>
         </button>
         <button class="navBtn" data-view="settings">
           <span class="ar">الإعدادات</span><span class="en">Settings</span>
@@ -42,11 +47,9 @@
       <div class="sideFooter">
         <div class="smallNote">
           <span class="ar">العملة:</span> <span id="currencyBadge" class="pill">SDG</span>
-          <span class="en">Currency:</span>
         </div>
         <div class="smallNote">
           <span class="ar">البيانات محفوظة تلقائيًا</span>
-          <span class="en">Auto-saved</span>
         </div>
       </div>
     </aside>
@@ -77,140 +80,204 @@
       </header>
 
       <!-- Views -->
-      <section class="view active" id="view-invoices">
-        <div class="grid2">
-          <div class="card">
-            <div class="cardTitle">
-              <div class="titleAr">إنشاء فاتورة</div>
-              <div class="titleEn">Create Invoice</div>
+      
+      <!-- HOME VIEW -->
+      <section class="view active" id="view-home">
+        <div class="heroSection">
+          <div class="heroContent">
+            <h1 class="heroTitle">نظام سند للفواتير</h1>
+            <p class="heroSubtitle">إدارة محل الأكسسوارات باحترافية وسهولة</p>
+            <button class="btn heroBtn" onclick="switchView('invoices')">
+              <span class="ar">✨ إنشاء فاتورة جديدة</span>
+            </button>
+          </div>
+          <div class="heroStats">
+            <div class="statCard">
+              <div class="statIcon">📊</div>
+              <div class="statValue" id="homeTotalSales">0</div>
+              <div class="statLabel">إجمالي المبيعات</div>
+            </div>
+            <div class="statCard">
+              <div class="statIcon">🧾</div>
+              <div class="statValue" id="homeInvoiceCount">0</div>
+              <div class="statLabel">عدد الفواتير</div>
+            </div>
+            <div class="statCard">
+              <div class="statIcon">📦</div>
+              <div class="statValue" id="homeItemsCount">0</div>
+              <div class="statLabel">البنود</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="quickActions">
+          <h3 class="sectionTitle">إجراءات سريعة</h3>
+          <div class="quickGrid">
+            <button class="quickBtn" onclick="switchView('invoices')">
+              <span class="icon">➕</span>
+              <span class="text">فاتورة جديدة</span>
+            </button>
+            <button class="quickBtn" onclick="switchView('items')">
+              <span class="icon">📦</span>
+              <span class="text">إضافة بند</span>
+            </button>
+            <button class="quickBtn" onclick="switchView('customers')">
+              <span class="icon">👤</span>
+              <span class="text">عميل جديد</span>
+            </button>
+            <button class="quickBtn" onclick="switchView('returns')">
+              <span class="icon">↩️</span>
+              <span class="text">مرتجع</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="recentSection">
+          <h3 class="sectionTitle">آخر الفواتير</h3>
+          <div class="tableWrap">
+            <table class="tbl" id="recentInvoicesTable">
+              <thead>
+                <tr>
+                  <th>رقم الفاتورة</th>
+                  <th>العميل</th>
+                  <th>التاريخ</th>
+                  <th>المبلغ</th>
+                  <th>الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- INVOICES VIEW -->
+      <section class="view" id="view-invoices">
+        <div class="invoiceContainer">
+          <!-- Invoice Form -->
+          <div class="invoiceForm">
+            <div class="formHeader">
+              <h2 class="formTitle">📝 إنشاء فاتورة جديدة</h2>
             </div>
 
-            <div class="formRow">
-              <label class="lbl">
-                <span class="ar">العميل</span><span class="en">Customer</span>
-              </label>
-              <select id="invCustomer"></select>
-            </div>
+            <div class="formGrid">
+              <div class="formGroup">
+                <label class="formLabel">العميل</label>
+                <select id="invCustomer" class="formInput"></select>
+              </div>
 
-            <div class="formRow">
-              <label class="lbl">
-                <span class="ar">تاريخ</span><span class="en">Date</span>
-              </label>
-              <input id="invDate" type="date" />
+              <div class="formGroup">
+                <label class="formLabel">التاريخ</label>
+                <input id="invDate" type="date" class="formInput" />
+              </div>
             </div>
 
             <div class="divider"></div>
 
-            <div class="formRow">
-              <label class="lbl">
-                <span class="ar">البند</span><span class="en">Item</span>
-              </label>
-              <select id="lineItem"></select>
-            </div>
+            <div class="addItemSection">
+              <h3 class="sectionSubtitle">إضافة بند للفاتورة</h3>
+              <div class="formGrid3">
+                <div class="formGroup">
+                  <label class="formLabel">البند</label>
+                  <select id="lineItem" class="formInput"></select>
+                </div>
 
-            <div class="formRow">
-              <label class="lbl">
-                <span class="ar">الكمية</span><span class="en">Qty</span>
-              </label>
-              <input id="lineQty" type="number" min="1" value="1" />
-            </div>
+                <div class="formGroup">
+                  <label class="formLabel">الكمية</label>
+                  <input id="lineQty" type="number" min="1" value="1" class="formInput" />
+                </div>
 
-            <div class="formRow">
-              <label class="lbl">
-                <span class="ar">خصم</span><span class="en">Discount</span>
-              </label>
-              <input id="lineDiscount" type="number" min="0" value="0" />
-            </div>
+                <div class="formGroup">
+                  <label class="formLabel">الخصم</label>
+                  <input id="lineDiscount" type="number" min="0" value="0" class="formInput" />
+                </div>
+              </div>
 
-            <div class="actions">
-              <button class="btn primary" id="addLineBtn">
-                <span class="ar">إضافة للسلة</span><span class="en">Add Line</span>
-              </button>
-              <button class="btn ghost" id="clearCartBtn">
-                <span class="ar">تفريغ</span><span class="en">Clear</span>
+              <button class="btn addItemBtn" id="addLineBtn">
+                <span>➕ إضافة للفاتورة</span>
               </button>
             </div>
 
             <div class="divider"></div>
 
-            <div class="tableWrap">
-              <table class="tbl" id="cartTable">
-                <thead>
-                  <tr>
-                    <th><span class="ar">البند</span><span class="en">Item</span></th>
-                    <th><span class="ar">سعر</span><span class="en">Price</span></th>
-                    <th><span class="ar">كمية</span><span class="en">Qty</span></th>
-                    <th><span class="ar">خصم</span><span class="en">Disc</span></th>
-                    <th><span class="ar">الإجمالي</span><span class="en">Total</span></th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
+            <div class="cartSection">
+              <h3 class="sectionSubtitle">تفاصيل الفاتورة</h3>
+              <div class="tableWrap">
+                <table class="tbl" id="cartTable">
+                  <thead>
+                    <tr>
+                      <th>البند</th>
+                      <th>السعر</th>
+                      <th>الكمية</th>
+                      <th>الخصم</th>
+                      <th>الإجمالي</th>
+                      <th>حذف</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
             </div>
 
-            <div class="totals">
-              <div class="totRow">
-                <span class="ar">الإجمالي</span><span class="en">Subtotal</span>
-                <span class="val" id="subTotal">0</span>
+            <div class="invoiceTotals">
+              <div class="totalsGrid">
+                <div class="totalRow">
+                  <span>الإجمالي:</span>
+                  <span id="subTotal" class="amount">0</span>
+                </div>
+                <div class="totalRow">
+                  <span>إجمالي الخصم:</span>
+                  <span id="discTotal" class="amount">0</span>
+                </div>
+                <div class="totalRow grand">
+                  <span>المبلغ النهائي:</span>
+                  <span id="grandTotal" class="amount">0</span>
+                </div>
               </div>
-              <div class="totRow">
-                <span class="ar">إجمالي الخصم</span><span class="en">Discount</span>
-                <span class="val" id="discTotal">0</span>
-              </div>
-              <div class="totRow grand">
-                <span class="ar">المبلغ النهائي</span><span class="en">Grand Total</span>
-                <span class="val" id="grandTotal">0</span>
-              </div>
-              <!-- ✅ الربح لا يظهر هنا أبداً -->
             </div>
 
-            <div class="actions">
-              <button class="btn primary" id="saveInvoiceBtn">
-                <span class="ar">حفظ الفاتورة</span><span class="en">Save Invoice</span>
+            <div class="formActions">
+              <button class="btn saveBtn" id="saveInvoiceBtn">
+                <span>💾 حفظ الفاتورة</span>
               </button>
-              <button class="btn" id="printInvoiceBtn">
-                <span class="ar">طباعة</span><span class="en">Print</span>
+              <button class="btn printBtn" id="printInvoiceBtn">
+                <span>🖨️ طباعة</span>
+              </button>
+              <button class="btn clearBtn" id="clearCartBtn">
+                <span>🗑️ تفريغ</span>
               </button>
             </div>
           </div>
 
-          <div class="card">
-            <div class="cardTitle">
-              <div class="titleAr">الفواتير المحفوظة</div>
-              <div class="titleEn">Saved Invoices</div>
+          <!-- Saved Invoices -->
+          <div class="savedInvoices">
+            <div class="cardHeader">
+              <h3 class="cardTitle">📋 الفواتير المحفوظة</h3>
             </div>
-
-            <div class="formRow">
-              <label class="lbl">
-                <span class="ar">بحث</span><span class="en">Search</span>
-              </label>
-              <input id="invSearch" placeholder="ابحث بالاسم/الرقم" />
+            
+            <div class="searchBox">
+              <input id="invSearch" placeholder="🔍 ابحث بالاسم أو الرقم..." class="formInput" />
             </div>
 
             <div class="tableWrap">
               <table class="tbl" id="invoicesTable">
                 <thead>
                   <tr>
-                    <th><span class="ar">رقم</span><span class="en">No.</span></th>
-                    <th><span class="ar">العميل</span><span class="en">Customer</span></th>
-                    <th><span class="ar">تاريخ</span><span class="en">Date</span></th>
-                    <th><span class="ar">الإجمالي</span><span class="en">Total</span></th>
-                    <th></th>
+                    <th>رقم</th>
+                    <th>العميل</th>
+                    <th>التاريخ</th>
+                    <th>الإجمالي</th>
+                    <th>إجراءات</th>
                   </tr>
                 </thead>
                 <tbody></tbody>
               </table>
             </div>
-
-            <div class="hint">
-              <span class="ar">ملاحظة: صافي الربح يظهر فقط في التقارير (داخلي).</span>
-              <span class="en">Note: Profit is internal (reports only).</span>
-            </div>
           </div>
         </div>
       </section>
 
+      <!-- RETURNS VIEW -->
       <section class="view" id="view-returns">
         <div class="card">
           <div class="cardTitle">
@@ -272,6 +339,7 @@
         </div>
       </section>
 
+      <!-- ITEMS VIEW -->
       <section class="view" id="view-items">
         <div class="grid2">
           <div class="card">
@@ -336,6 +404,7 @@
         </div>
       </section>
 
+      <!-- CUSTOMERS VIEW -->
       <section class="view" id="view-customers">
         <div class="grid2">
           <div class="card">
@@ -389,6 +458,7 @@
         </div>
       </section>
 
+      <!-- REPORTS VIEW -->
       <section class="view" id="view-reports">
         <div class="card">
           <div class="cardTitle">
@@ -455,6 +525,7 @@
         </div>
       </section>
 
+      <!-- SETTINGS VIEW -->
       <section class="view" id="view-settings">
         <div class="card">
           <div class="cardTitle">
@@ -469,59 +540,4 @@
                 <input id="setNameAr" />
               </div>
               <div class="formRow">
-                <label class="lbl"><span class="ar">Company Name (EN)</span><span class="en">Company (EN)</span></label>
-                <input id="setNameEn" />
-              </div>
-              <div class="formRow">
-                <label class="lbl"><span class="ar">الموقع (عربي)</span><span class="en">Location (AR)</span></label>
-                <input id="setLocAr" />
-              </div>
-              <div class="formRow">
-                <label class="lbl"><span class="ar">Location (EN)</span><span class="en">Location (EN)</span></label>
-                <input id="setLocEn" />
-              </div>
-              <div class="formRow">
-                <label class="lbl"><span class="ar">رقم الجوال</span><span class="en">Phone</span></label>
-                <input id="setPhone" />
-              </div>
-
-              <div class="actions">
-                <button class="btn primary" id="saveSettingsBtn">
-                  <span class="ar">حفظ الإعدادات</span><span class="en">Save</span>
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <div class="hint">
-                <span class="ar">اللون: أزرق + أسود + أبيض (افتراضي)</span>
-                <span class="en">Theme: Blue/Black/White</span>
-              </div>
-
-              <div class="formRow">
-                <label class="lbl"><span class="ar">العملة</span><span class="en">Currency</span></label>
-                <input value="SDG (جنيه سوداني)" disabled />
-              </div>
-
-              <div class="divider"></div>
-
-              <button class="btn danger" id="resetBtn">
-                <span class="ar">مسح كل البيانات</span><span class="en">Reset Data</span>
-              </button>
-              <div class="hint warn">
-                <span class="ar">تحذير: المسح نهائي.</span>
-                <span class="en">Warning: irreversible.</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Print area -->
-      <section class="printArea" id="printArea" aria-hidden="true"></section>
-    </main>
-  </div>
-
-  <script src="app.js"></script>
-</body>
-  </html>
+                <label class="lbl"><span 
