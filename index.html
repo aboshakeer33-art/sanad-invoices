@@ -14,7 +14,6 @@
       min-height: 100vh;
     }
     
-    /* الهيدر */
     .header { 
       background: linear-gradient(135deg, #1e3a5f, #0f172a);
       padding: 30px 20px; 
@@ -26,7 +25,6 @@
       color: #d4af37; 
       font-size: 38px; 
       margin-bottom: 15px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     }
     
     .header .details {
@@ -39,10 +37,8 @@
     .header .contact {
       color: #94a3b8;
       margin-top: 15px;
-      font-size: 16px;
     }
     
-    /* القائمة */
     .nav { 
       display: flex; 
       background: #1e293b;
@@ -75,7 +71,6 @@
       background: rgba(212, 175, 55, 0.15);
     }
     
-    /* المحتوى */
     .content { 
       padding: 25px; 
       max-width: 1200px; 
@@ -90,26 +85,20 @@
       to { opacity: 1; transform: translateY(0); }
     }
     
-    /* البطاقات */
     .box {
       background: linear-gradient(145deg, #1e293b, #0f172a);
       border: 1px solid #334155;
       border-radius: 16px;
       padding: 25px;
       margin-bottom: 25px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
     }
     
     .box h2 {
       color: #d4af37;
       margin-bottom: 20px;
       font-size: 22px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
     }
     
-    /* الحقول */
     input, select {
       width: 100%;
       padding: 14px 18px;
@@ -119,16 +108,13 @@
       color: #e2e8f0;
       border-radius: 10px;
       font-size: 16px;
-      font-family: inherit;
     }
     
     input:focus, select:focus {
       outline: none;
       border-color: #d4af37;
-      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
     }
     
-    /* الأزرار */
     .btn {
       display: inline-flex;
       align-items: center;
@@ -140,18 +126,11 @@
       font-weight: bold;
       cursor: pointer;
       margin: 5px;
-      font-family: inherit;
-      transition: all 0.3s;
     }
     
     .btn-gold {
       background: linear-gradient(135deg, #d4af37, #b8941f);
       color: #0f172a;
-    }
-    
-    .btn-gold:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
     }
     
     .btn-gray {
@@ -164,7 +143,6 @@
       color: white;
     }
     
-    /* الجداول */
     .table-wrap {
       overflow-x: auto;
       border-radius: 12px;
@@ -192,7 +170,6 @@
     
     tr:hover { background: rgba(212, 175, 55, 0.05); }
     
-    /* الإحصائيات */
     .stats {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -206,35 +183,15 @@
       border-radius: 16px;
       padding: 30px;
       text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .stat-box::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #d4af37, #fbbf24);
     }
     
     .stat-box .num {
-      font-size: 42px;
+      font-size: 40px;
       color: #d4af37;
       font-weight: 900;
       margin: 15px 0;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
     
-    .stat-box .label {
-      color: #64748b;
-      font-size: 16px;
-      font-weight: 600;
-    }
-    
-    /* الإجمالي */
     .total-box {
       background: linear-gradient(135deg, #1e3a5f, #0f172a);
       border: 2px solid #d4af37;
@@ -247,7 +204,6 @@
       text-align: center;
     }
     
-    /* الأزرار السريعة */
     .quick-btns {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -262,13 +218,10 @@
       padding: 35px 20px;
       text-align: center;
       cursor: pointer;
-      transition: all 0.3s;
     }
     
     .quick-btn:hover {
       border-color: #d4af37;
-      transform: translateY(-5px);
-      box-shadow: 0 15px 40px rgba(212, 175, 55, 0.2);
     }
     
     .quick-btn .icon {
@@ -282,27 +235,21 @@
       font-size: 18px;
     }
     
-    /* فارغ */
     .empty {
       text-align: center;
       padding: 50px;
       color: #64748b;
-      font-size: 18px;
     }
     
-    /* للجوال */
     @media (max-width: 768px) {
       .header h1 { font-size: 28px; }
-      .header .details { font-size: 15px; }
-      .nav button { font-size: 14px; padding: 15px 10px; min-width: 100px; }
+      .nav button { font-size: 14px; padding: 15px 10px; }
       .stats { grid-template-columns: 1fr; }
-      .quick-btns { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <!-- الهيدر -->
   <div class="header">
     <h1>🚪 سند للاكسسوارات</h1>
     <div class="details">
@@ -315,7 +262,6 @@
     </div>
   </div>
 
-  <!-- القائمة -->
   <div class="nav">
     <button onclick="showPage('home')" id="tab-home" class="active">🏠 الرئيسية</button>
     <button onclick="showPage('invoice')" id="tab-invoice">📝 فاتورة</button>
@@ -324,26 +270,24 @@
     <button onclick="showPage('reports')" id="tab-reports">📊 التقارير</button>
   </div>
 
-  <!-- المحتوى -->
   <div class="content">
 
-    <!-- الرئيسية -->
     <div id="page-home" class="page active">
       <div class="stats">
         <div class="stat-box">
-          <div class="label">💰 إجمالي المبيعات</div>
+          <div>💰 إجمالي المبيعات</div>
           <div class="num" id="home-sales">0</div>
-          <div class="label">جنيه سوداني</div>
+          <div>جنيه سوداني</div>
         </div>
         <div class="stat-box">
-          <div class="label">🧾 عدد الفواتير</div>
+          <div>🧾 عدد الفواتير</div>
           <div class="num" id="home-invoices">0</div>
-          <div class="label">فاتورة</div>
+          <div>فاتورة</div>
         </div>
         <div class="stat-box">
-          <div class="label">📦 البنود المتاحة</div>
+          <div>📦 البنود المتاحة</div>
           <div class="num" id="home-items">0</div>
-          <div class="label">بند</div>
+          <div>بند</div>
         </div>
       </div>
 
@@ -375,7 +319,6 @@
       </div>
     </div>
 
-    <!-- فاتورة جديدة -->
     <div id="page-invoice" class="page">
       <div class="box">
         <h2>📝 بيانات الفاتورة</h2>
@@ -387,7 +330,7 @@
         <h2>➕ إضافة بند للفاتورة</h2>
         <select id="inv-item"><option value="">-- اختر البند --</option></select>
         <input type="number" id="inv-qty" value="1" min="1" placeholder="الكمية">
-        <input type="number" id="inv-price" placeholder="السعر (اختياري - يستخدم سعر البند الافتراضي)">
+        <input type="number" id="inv-price" placeholder="السعر (اختياري)">
         <button class="btn btn-gold" onclick="addItemToInvoice()">➕ إضافة للفاتورة</button>
       </div>
 
@@ -417,12 +360,11 @@
       </div>
     </div>
 
-    <!-- البنود -->
     <div id="page-items" class="page">
       <div class="box">
         <h2>📦 إضافة بند جديد</h2>
         <input type="text" id="new-item-name" placeholder="اسم البند (مثال: مفصلة ألمنيوم)">
-        <input type="number" id="new-item-price" placeholder="سعر البيع بالجنيه">
+        <input type="number" id="new-item-price" placeholder="السعر">
         <input type="number" id="new-item-stock" value="0" placeholder="المخزون">
         <button class="btn btn-gold" onclick="addNewItem()">➕ حفظ البند</button>
       </div>
@@ -445,7 +387,6 @@
       </div>
     </div>
 
-    <!-- العملاء -->
     <div id="page-customers" class="page">
       <div class="box">
         <h2>👤 إضافة عميل جديد</h2>
@@ -471,19 +412,18 @@
       </div>
     </div>
 
-    <!-- التقارير -->
     <div id="page-reports" class="page">
       <div class="stats">
         <div class="stat-box">
-          <div class="label">💰 إجمالي المبيعات</div>
+          <div>💰 إجمالي المبيعات</div>
           <div class="num" id="rep-sales">0</div>
         </div>
         <div class="stat-box">
-          <div class="label">🧾 عدد الفواتير</div>
+          <div>🧾 عدد الفواتير</div>
           <div class="num" id="rep-count">0</div>
         </div>
         <div class="stat-box">
-          <div class="label">📊 متوسط الفاتورة</div>
+          <div>📊 متوسط الفاتورة</div>
           <div class="num" id="rep-avg">0</div>
         </div>
       </div>
@@ -509,15 +449,12 @@
   </div>
 
   <script>
-    // ========== البيانات ==========
     var allItems = JSON.parse(localStorage.getItem('sanad_items')) || [];
     var allCustomers = JSON.parse(localStorage.getItem('sanad_customers')) || [{name:'عميل نقدي', phone:'-'}];
     var allInvoices = JSON.parse(localStorage.getItem('sanad_invoices')) || [];
     var currentItems = [];
 
-    // ========== التنقل ==========
     function showPage(page) {
-      // إخفاء كل الصفحات
       var pages = document.querySelectorAll('.page');
       for(var i=0; i<pages.length; i++) {
         pages[i].classList.remove('active');
@@ -528,11 +465,9 @@
         tabs[i].classList.remove('active');
       }
       
-      // إظهار الصفحة المطلوبة
       document.getElementById('page-' + page).classList.add('active');
       document.getElementById('tab-' + page).classList.add('active');
       
-      // تحديث البيانات
       if(page == 'home') updateHome();
       if(page == 'invoice') {
         updateItemSelect();
@@ -544,24 +479,17 @@
       if(page == 'reports') showReports();
     }
 
-    // ========== البنود ==========
     function addNewItem() {
       var name = document.getElementById('new-item-name').value.trim();
       var price = parseFloat(document.getElementById('new-item-price').value) || 0;
       var stock = parseInt(document.getElementById('new-item-stock').value) || 0;
       
       if(!name || price <= 0) {
-        alert('❌ أدخل اسم البند والسعر');
+        alert('أدخل اسم البند والسعر');
         return;
       }
       
-      allItems.push({
-        id: Date.now(),
-        name: name,
-        price: price,
-        stock: stock
-      });
-      
+      allItems.push({id: Date.now(), name: name, price: price, stock: stock});
       localStorage.setItem('sanad_items', JSON.stringify(allItems));
       
       document.getElementById('new-item-name').value = '';
@@ -569,7 +497,7 @@
       document.getElementById('new-item-stock').value = '0';
       
       showItems();
-      alert('✅ تم إضافة البند: ' + name);
+      alert('تم إضافة البند: ' + name);
     }
 
     function showItems() {
@@ -584,9 +512,9 @@
         var item = allItems[i];
         html += '<tr>' +
           '<td><b>' + item.name + '</b></td>' +
-          '<td style="color:#d4af37; font-weight:bold;">' + item.price + ' جنيه</td>' +
+          '<td style="color:#d4af37"><b>' + item.price + '</b> جنيه</td>' +
           '<td>' + item.stock + '</td>' +
-          '<td><button class="btn btn-red" onclick="deleteItem(' + item.id + ')">🗑️ حذف</button></td>' +
+          '<td><button class="btn btn-red" onclick="deleteItem(' + item.id + ')">حذف</button></td>' +
         '</tr>';
       }
       tbody.innerHTML = html;
@@ -613,29 +541,23 @@
       select.innerHTML = html;
     }
 
-    // ========== العملاء ==========
     function addNewCustomer() {
       var name = document.getElementById('new-cust-name').value.trim();
       var phone = document.getElementById('new-cust-phone').value.trim();
       
       if(!name) {
-        alert('❌ أدخل اسم العميل');
+        alert('أدخل اسم العميل');
         return;
       }
       
-      allCustomers.push({
-        id: Date.now(),
-        name: name,
-        phone: phone || '-'
-      });
-      
+      allCustomers.push({id: Date.now(), name: name, phone: phone || '-'});
       localStorage.setItem('sanad_customers', JSON.stringify(allCustomers));
       
       document.getElementById('new-cust-name').value = '';
       document.getElementById('new-cust-phone').value = '';
       
       showCustomers();
-      alert('✅ تم إضافة العميل: ' + name);
+      alert('تم إضافة العميل: ' + name);
     }
 
     function showCustomers() {
@@ -655,7 +577,7 @@
         html += '<tr>' +
           '<td><b>' + list[i].name + '</b></td>' +
           '<td>' + list[i].phone + '</td>' +
-          '<td><button class="btn btn-red" onclick="deleteCustomer(' + list[i].id + ')">🗑️ حذف</button></td>' +
+          '<td><button class="btn btn-red" onclick="deleteCustomer(' + list[i].id + ')">حذف</button></td>' +
         '</tr>';
       }
       tbody.innerHTML = html;
@@ -681,14 +603,13 @@
       select.innerHTML = html;
     }
 
-    // ========== الفاتورة ==========
     function addItemToInvoice() {
       var itemId = document.getElementById('inv-item').value;
       var qty = parseInt(document.getElementById('inv-qty').value) || 1;
       var customPrice = parseFloat(document.getElementById('inv-price').value) || 0;
       
       if(!itemId) {
-        alert('❌ اختر البند أولاً');
+        alert('اختر البند أولاً');
         return;
       }
       
@@ -719,4 +640,76 @@
 
     function showInvoiceItems() {
       var box = document.getElementById('invoice-items-box');
-      var tbody = document.
+      var tbody = document.getElementById('invoice-items');
+      
+      if(currentItems.length == 0) {
+        box.style.display = 'none';
+        return;
+      }
+      
+      box.style.display = 'block';
+      
+      var html = '';
+      var sum = 0;
+      for(var i=0; i<currentItems.length; i++) {
+        var item = currentItems[i];
+        sum += item.total;
+        html += '<tr>' +
+          '<td><b>' + item.name + '</b></td>' +
+          '<td>' + item.price + '</td>' +
+          '<td>' + item.qty + '</td>' +
+          '<td style="color:#d4af37"><b>' + item.total + '</b></td>' +
+          '<td><button class="btn btn-red" onclick="removeItem(' + i + ')">حذف</button></td>' +
+        '</tr>';
+      }
+      
+      tbody.innerHTML = html;
+      document.getElementById('invoice-total').innerText = sum;
+    }
+
+    function removeItem(index) {
+      var newItems = [];
+      for(var i=0; i<currentItems.length; i++) {
+        if(i != index) newItems.push(currentItems[i]);
+      }
+      currentItems = newItems;
+      showInvoiceItems();
+    }
+
+    function clearInvoice() {
+      if(currentItems.length == 0) return;
+      if(!confirm('تفريغ الفاتورة؟')) return;
+      currentItems = [];
+      showInvoiceItems();
+    }
+
+    function saveInvoice() {
+      if(currentItems.length == 0) {
+        alert('الفاتورة فارغة!');
+        return;
+      }
+      
+      var cust = document.getElementById('inv-customer').value;
+      var date = document.getElementById('inv-date').value || new Date().toISOString().split('T')[0];
+      
+      var total = 0;
+      for(var i=0; i<currentItems.length; i++) {
+        total += currentItems[i].total;
+      }
+      
+      allInvoices.push({
+        id: Date.now(),
+        num: 'F-' + (allInvoices.length + 1),
+        customer: cust,
+        date: date,
+        items: currentItems.slice(),
+        total: total
+      });
+      
+      localStorage.setItem('sanad_invoices', JSON.stringify(allInvoices));
+      
+      currentItems = [];
+      showInvoiceItems();
+      updateHome();
+      
+      alert('تم حفظ الفاتورة بنج
