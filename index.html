@@ -483,33 +483,156 @@
             }
         }
 
-        /* طباعة الفاتورة */
-        .print-invoice {
-            background: #fff;
-            color: #000;
-            padding: 40px;
-            max-width: 800px;
-            margin: 0 auto;
-            display: none;
+        /* طباعة الفاتورة - التصميم الجديد */
+        @media print {
+            body * {
+                visibility: hidden !important;
+            }
+            
+            #printSection, #printSection * {
+                visibility: visible !important;
+            }
+            
+            #printSection {
+                position: fixed !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                background: white !important;
+                color: black !important;
+                z-index: 99999 !important;
+                padding: 20px !important;
+                display: block !important;
+            }
         }
 
-        .print-invoice.show {
+        #printSection {
+            display: none;
+            background: white;
+            color: black;
+            padding: 40px;
+            font-family: 'Arial', sans-serif;
+            direction: rtl;
+        }
+
+        #printSection.show {
             display: block;
         }
 
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            .print-invoice, .print-invoice * {
-                visibility: visible;
-            }
-            .print-invoice {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-            }
+        .print-header {
+            text-align: center;
+            border-bottom: 3px double #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .print-header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #000;
+        }
+
+        .print-header p {
+            font-size: 14px;
+            color: #333;
+            margin: 5px 0;
+        }
+
+        .print-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .print-info-box {
+            flex: 1;
+        }
+
+        .print-info-box h4 {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .print-info-box p {
+            font-size: 16px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .print-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .print-table th {
+            background: #333;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #333;
+        }
+
+        .print-table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+            color: #000;
+        }
+
+        .print-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .print-totals {
+            margin-top: 30px;
+            border-top: 2px solid #333;
+            padding-top: 20px;
+        }
+
+        .print-total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 16px;
+            color: #000;
+        }
+
+        .print-total-row.final {
+            font-size: 22px;
+            font-weight: bold;
+            border-top: 2px solid #333;
+            margin-top: 10px;
+            padding-top: 15px;
+            color: #000;
+        }
+
+        .print-footer {
+            margin-top: 50px;
+            text-align: center;
+            border-top: 1px dashed #999;
+            padding-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .print-logo {
+            width: 80px;
+            height: 80px;
+            background: #ffd700;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: bold;
+            color: #000;
+            margin: 0 auto 20px;
         }
 
         /* الإشعارات */
@@ -535,7 +658,6 @@
             background: #ff6b6b;
         }
     </style>
-<base target="_blank">
 </head>
 <body>
 
@@ -724,8 +846,10 @@
                             </div>
                             <div class="total-row">
                                 <span>الخصم:</span>
-                                <input type="number" id="discount" value="0" style="width: 100px; text-align: left;" onchange="calculateTotals()">
-                                <span>ج.س</span>
+                                <span>
+                                    <input type="number" id="discount" value="0" style="width: 100px; text-align: left; padding: 5px;" onchange="calculateTotals()">
+                                    ج.س
+                                </span>
                             </div>
                             <div class="total-row final">
                                 <span>الإجمالي:</span>
@@ -735,7 +859,7 @@
 
                         <div style="margin-top: 30px; display: flex; gap: 10px;">
                             <button class="btn btn-primary" onclick="saveInvoice()">💾 حفظ الفاتورة</button>
-                            <button class="btn btn-secondary" onclick="printInvoice()">🖨️ طباعة PDF</button>
+                            <button class="btn btn-secondary" onclick="previewAndPrint()">🖨️ معاينة وطباعة</button>
                             <button class="btn btn-danger" onclick="resetInvoice()">❌ إلغاء</button>
                         </div>
                     </div>
@@ -833,42 +957,67 @@
     </div>
 
     <!-- نموذج الطباعة -->
-    <div id="printSection" class="print-invoice">
-        <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 20px;">
-            <h1 id="printShopName" style="margin: 0;">سند لاكسسوارات</h1>
-            <p id="printShopInfo" style="margin: 5px 0;"></p>
+    <div id="printSection">
+        <div class="print-header">
+            <div class="print-logo">س</div>
+            <h1 id="printShopName">سند لاكسسوارات</h1>
+            <p id="printShopAddress">العنوان</p>
+            <p id="printShopPhone">هاتف: 0913678918</p>
+            <p id="printShopEmail">الإيميل</p>
         </div>
         
-        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-            <div>
-                <p><strong>فاتورة رقم:</strong> <span id="printInvoiceNum"></span></p>
-                <p><strong>التاريخ:</strong> <span id="printDate"></span></p>
+        <div class="print-info">
+            <div class="print-info-box">
+                <h4>رقم الفاتورة</h4>
+                <p id="printInvoiceNum">-</p>
             </div>
-            <div style="text-align: left;">
-                <p><strong>العميل:</strong> <span id="printCustomer"></span></p>
-                <p><strong>الهاتف:</strong> <span id="printPhone"></span></p>
+            <div class="print-info-box" style="text-align: center;">
+                <h4>التاريخ</h4>
+                <p id="printDate">-</p>
+            </div>
+            <div class="print-info-box" style="text-align: left;">
+                <h4>الوقت</h4>
+                <p id="printTime">-</p>
             </div>
         </div>
 
-        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        <div style="margin-bottom: 20px;">
+            <h4 style="color: #666; font-size: 12px; margin-bottom: 5px;">بيانات العميل</h4>
+            <p style="font-size: 18px; font-weight: bold; color: #000;" id="printCustomer">-</p>
+            <p style="color: #666;" id="printCustomerPhone">-</p>
+        </div>
+
+        <table class="print-table">
             <thead>
-                <tr style="border-bottom: 2px solid #000;">
-                    <th style="text-align: right; padding: 10px;">#</th>
-                    <th style="text-align: right; padding: 10px;">المنتج</th>
-                    <th style="text-align: center; padding: 10px;">الكمية</th>
-                    <th style="text-align: center; padding: 10px;">السعر</th>
-                    <th style="text-align: left; padding: 10px;">الإجمالي</th>
+                <tr>
+                    <th>#</th>
+                    <th>المنتج</th>
+                    <th>الكمية</th>
+                    <th>سعر الوحدة</th>
+                    <th>الإجمالي</th>
                 </tr>
             </thead>
             <tbody id="printItems"></tbody>
         </table>
 
-        <div style="border-top: 2px solid #000; padding-top: 20px; text-align: left;">
-            <p style="font-size: 18px;"><strong>الإجمالي:</strong> <span id="printTotal"></span> ج.س</p>
+        <div class="print-totals">
+            <div class="print-total-row">
+                <span>المجموع:</span>
+                <span id="printSubtotal">0 ج.س</span>
+            </div>
+            <div class="print-total-row">
+                <span>الخصم:</span>
+                <span id="printDiscount">0 ج.س</span>
+            </div>
+            <div class="print-total-row final">
+                <span>الإجمالي النهائي:</span>
+                <span id="printTotal">0 ج.س</span>
+            </div>
         </div>
 
-        <div style="text-align: center; margin-top: 50px; border-top: 1px dashed #000; padding-top: 20px;">
-            <p>شكراً لتعاملكم مع سند لاكسسوارات</p>
+        <div class="print-footer">
+            <p>شكراً لتعاملكم مع <strong>سند لاكسسوارات</strong></p>
+            <p style="margin-top: 10px; font-size: 12px;">هذه الفاتورة صادرة إلكترونياً ولا تحتاج توقيع</p>
         </div>
     </div>
 
@@ -1153,35 +1302,66 @@
             calculateTotals();
         }
 
-        function printInvoice() {
+        // معاينة وطباعة الفاتورة
+        function previewAndPrint() {
+            // تعبئة بيانات الطباعة
             document.getElementById('printShopName').textContent = settings.shopName;
-            document.getElementById('printShopInfo').textContent = 
-                `${settings.shopAddress} | هاتف: ${settings.shopPhone}`;
+            document.getElementById('printShopAddress').textContent = settings.shopAddress || 'العنوان غير محدد';
+            document.getElementById('printShopPhone').textContent = 'هاتف: ' + (settings.shopPhone || '-');
+            document.getElementById('printShopEmail').textContent = settings.shopEmail || '';
+            
             document.getElementById('printInvoiceNum').textContent = document.getElementById('invoiceNumber').value;
             document.getElementById('printDate').textContent = document.getElementById('invoiceDate').value;
-            document.getElementById('printCustomer').textContent = document.getElementById('customerName').value || 'عميل نقدي';
-            document.getElementById('printPhone').textContent = document.getElementById('customerPhone').value;
-            document.getElementById('printTotal').textContent = document.getElementById('grandTotal').textContent.replace(/[^\d]/g, '');
+            document.getElementById('printTime').textContent = new Date().toLocaleTimeString('ar-SD');
             
+            const customerName = document.getElementById('customerName').value || 'عميل نقدي';
+            const customerPhone = document.getElementById('customerPhone').value || '-';
+            document.getElementById('printCustomer').textContent = customerName;
+            document.getElementById('printCustomerPhone').textContent = 'هاتف: ' + customerPhone;
+            
+            // تعبئة المنتجات
             const items = [];
             document.querySelectorAll('.item-row').forEach((row, index) => {
                 const name = row.children[0].value;
                 const qty = row.children[1].value;
                 const price = row.children[2].value;
                 const total = row.children[3].value;
-                if (name) items.push({ index: index + 1, name, qty, price, total });
+                if (name) {
+                    items.push({ 
+                        index: index + 1, 
+                        name, 
+                        qty, 
+                        price: parseFloat(price).toLocaleString(), 
+                        total: parseFloat(total).toLocaleString() 
+                    });
+                }
             });
+            
+            if (items.length === 0) {
+                showToast('الرجاء إضافة منتجات أولاً!', 'error');
+                return;
+            }
             
             document.getElementById('printItems').innerHTML = items.map(item => `
                 <tr>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.index}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.name}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${item.qty}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${item.price}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: left;">${item.total}</td>
+                    <td>${item.index}</td>
+                    <td style="text-align: right;">${item.name}</td>
+                    <td>${item.qty}</td>
+                    <td>${item.price} ج.س</td>
+                    <td style="font-weight: bold;">${item.total} ج.س</td>
                 </tr>
             `).join('');
             
+            // المجاميع
+            const subtotal = document.getElementById('subtotal').textContent;
+            const discount = document.getElementById('discount').value;
+            const grandTotal = document.getElementById('grandTotal').textContent;
+            
+            document.getElementById('printSubtotal').textContent = subtotal;
+            document.getElementById('printDiscount').textContent = parseFloat(discount).toLocaleString() + ' ج.س';
+            document.getElementById('printTotal').textContent = grandTotal;
+            
+            // فتح نافذة الطباعة
             window.print();
         }
 
@@ -1290,9 +1470,11 @@
 
         // اختصارات لوحة المفاتيح
         document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'n') {
+            if (e.ctrlKey && e.key === 'p') {
                 e.preventDefault();
-                if (currentUser) showPage('invoice');
+                if (currentUser && document.getElementById('invoice').classList.contains('active')) {
+                    previewAndPrint();
+                }
             }
         });
 
