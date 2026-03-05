@@ -340,17 +340,6 @@
             color: white;
         }
 
-        .btn-warning {
-            background: #fef3c7;
-            color: #92400e;
-            border: 1px solid #fcd34d;
-        }
-
-        .btn-warning:hover {
-            background: #f59e0b;
-            color: white;
-        }
-
         .btn-info {
             background: #dbeafe;
             color: #1e40af;
@@ -459,6 +448,43 @@
             padding-top: 15px;
         }
 
+        /* طرق الدفع */
+        .payment-methods {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .payment-method {
+            flex: 1;
+            min-width: 100px;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .payment-method:hover {
+            border-color: #3b82f6;
+        }
+
+        .payment-method.selected {
+            border-color: #1e3a8a;
+            background: #eff6ff;
+        }
+
+        .payment-method input {
+            display: none;
+        }
+
+        .payment-method span {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
         /* المخزون والموردين */
         .inventory-grid, .suppliers-grid {
             display: grid;
@@ -514,6 +540,41 @@
             font-weight: bold;
         }
 
+        /* فلاتر البحث */
+        .filters-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        /* حالات الفواتير */
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-paid {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-partial {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-unpaid {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
         /* الصفحات المخفية */
         .page {
             display: none;
@@ -527,6 +588,32 @@
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* الإشعارات */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1e3a8a;
+            color: white;
+            padding: 16px 32px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 10000;
+            font-weight: 500;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.error {
+            background: #dc2626;
         }
 
         /* للموبايل */
@@ -589,6 +676,10 @@
 
             .form-row {
                 grid-template-columns: 1fr;
+            }
+
+            .payment-methods {
+                flex-direction: column;
             }
         }
 
@@ -1662,6 +1753,7 @@
             initInvoice();
             loadSettings();
             loadAllInvoices();
+            updateReports();
         }
 
         // التنقل بين الصفحات
@@ -1676,6 +1768,7 @@
             if (pageName === 'inventory') loadProducts();
             if (pageName === 'suppliers') loadSuppliers();
             if (pageName === 'invoicesList') loadAllInvoices();
+            if (pageName === 'reports') updateReports();
         }
 
         // تحديث لوحة التحكم
@@ -1711,7 +1804,7 @@
                     <td>${paymentMethodText}</td>
                     <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                     <td>
-                        <button class="btn btn-secondary" onclick="viewInvoice('${inv.number}')">عرض</button>
+                        <button class="btn btn-secondary" onclick="viewInvoiceDetails('${inv.number}')">عرض</button>
                         ${inv.paymentStatus !== 'paid' ? `<button class="btn btn-success" onclick="markAsPaid('${inv.number}')">تسديد</button>` : ''}
                     </td>
                 </tr>
@@ -2516,6 +2609,95 @@
                     showToast(`تم إضافة ${amount} حبة للمخزون`);
                 }
             }
+        }
+
+        // التقارير
+        function updateReports() {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            
+            // مبيعات الشهر
+            const monthInvoices = invoices.filter(inv => {
+                const invDate = new Date(inv.date);
+                return invDate.getMonth() === currentMonth && invDate.getFullYear() === currentYear;
+            });
+            
+            const monthSales = monthInvoices.reduce((sum, inv) => sum + inv.total, 0);
+            const monthProfit = monthInvoices.reduce((sum, inv) => sum + (inv.profit || 0), 0);
+            
+            // المبالغ المستحقة
+            const creditAmount = invoices
+                .filter(inv => inv.paymentStatus === 'unpaid' || inv.paymentStatus === 'partial')
+                .reduce((sum, inv) => sum + (inv.remainingAmount || 0), 0);
+            
+            // أفضل منتج
+            const productSales = {};
+            invoices.forEach(inv => {
+                inv.items.forEach(item => {
+                    productSales[item.name] = (productSales[item.name] || 0) + item.qty;
+                });
+            });
+            
+            let bestProduct = '-';
+            let maxSales = 0;
+            for (const [name, qty] of Object.entries(productSales)) {
+                if (qty > maxSales) {
+                    maxSales = qty;
+                    bestProduct = name;
+                }
+            }
+            
+            document.getElementById('monthSales').textContent = monthSales.toLocaleString() + ' ج.س';
+            document.getElementById('monthProfit').textContent = monthProfit.toLocaleString() + ' ج.س';
+            document.getElementById('creditAmount').textContent = creditAmount.toLocaleString() + ' ج.س';
+            document.getElementById('bestProduct').textContent = bestProduct;
+            
+            // التقرير اليومي
+            const dailyStats = {};
+            invoices.forEach(inv => {
+                const date = new Date(inv.date).toLocaleDateString('ar-SD');
+                if (!dailyStats[date]) {
+                    dailyStats[date] = {
+                        count: 0,
+                        total: 0,
+                        cash: 0,
+                        bank: 0,
+                        credit: 0,
+                        profit: 0
+                    };
+                }
+                
+                dailyStats[date].count++;
+                dailyStats[date].total += inv.total;
+                dailyStats[date].profit += (inv.profit || 0);
+                
+                if (inv.paymentMethod === 'cash') {
+                    dailyStats[date].cash += inv.paidAmount || inv.total;
+                } else if (inv.paymentMethod === 'bank') {
+                    dailyStats[date].bank += inv.paidAmount || inv.total;
+                } else {
+                    dailyStats[date].credit += inv.total;
+                }
+            });
+            
+            const tbody = document.getElementById('dailyReport');
+            const sortedDates = Object.keys(dailyStats).sort((a, b) => new Date(b) - new Date(a));
+            
+            tbody.innerHTML = sortedDates.slice(0, 30).map(date => {
+                const stats = dailyStats[date];
+                return `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${stats.count}</td>
+                        <td>${stats.total.toLocaleString()} ج.س</td>
+                        <td>${stats.cash.toLocaleString()} ج.س</td>
+                        <td>${stats.bank.toLocaleString()} ج.س</td>
+                        <td>${stats.credit.toLocaleString()} ج.س</td>
+                        <td style="color: #059669; font-weight: bold;">${stats.profit.toLocaleString()} ج.س</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         // الإعدادات
