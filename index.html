@@ -3,136 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سند لاكسسوارات - نظام المحاسبة المتكامل</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <title>سند لاكسسوارات - نظام الفواتير</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --primary: #1e3a8a;
-            --primary-light: #3b82f6;
-            --primary-dark: #1e40af;
-            --secondary: #64748b;
-            --accent: #f59e0b;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --info: #3b82f6;
-            --bg: #f1f5f9;
-            --card-bg: #ffffff;
-            --text: #1e293b;
-            --text-light: #64748b;
-            --border: #e2e8f0;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+        body { background: #f1f5f9; color: #1e293b; }
         
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* Login Page */
         .login-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            position: relative;
-            overflow: hidden;
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
         }
-
         .login-box {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 50px;
-            border-radius: 24px;
-            box-shadow: var(--shadow-lg);
-            width: 90%;
-            max-width: 450px;
+            background: white; padding: 50px; border-radius: 24px;
+            box-shadow: 0 20px 25px rgba(0,0,0,0.1); width: 90%; max-width: 450px;
+            text-align: center;
         }
-
-        .login-logo { text-align: center; margin-bottom: 40px; }
-        .login-logo .logo-icon {
-            width: 100px; height: 100px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            border-radius: 24px;
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 48px; color: white;
+        .logo-icon {
+            width: 100px; height: 100px; background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            border-radius: 24px; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px; font-size: 48px; color: white;
         }
-
-        .input-group { position: relative; margin-bottom: 24px; }
-        .input-group i {
-            position: absolute; right: 16px; top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-light); font-size: 18px;
-        }
+        .input-group { position: relative; margin-bottom: 20px; }
         .input-group input {
-            width: 100%; padding: 16px 48px 16px 16px;
-            border: 2px solid var(--border); border-radius: 12px;
-            font-size: 16px; font-family: inherit;
+            width: 100%; padding: 16px; border: 2px solid #e2e8f0;
+            border-radius: 12px; font-size: 16px;
         }
-
-        .login-btn {
-            width: 100%; padding: 16px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        .btn {
+            width: 100%; padding: 16px; background: linear-gradient(135deg, #1e3a8a, #3b82f6);
             color: white; border: none; border-radius: 12px;
             font-size: 18px; font-weight: 700; cursor: pointer;
         }
-
-        /* Layout */
-        .app-container { display: none; min-height: 100vh; }
         
+        .app { display: none; padding: 30px; }
         .sidebar {
-            width: 280px; background: var(--card-bg);
-            height: 100vh; position: fixed; right: 0; top: 0;
-            box-shadow: var(--shadow); z-index: 1000;
-            display: flex; flex-direction: column;
+            width: 280px; background: white; height: 100vh;
+            position: fixed; right: 0; top: 0; padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-
-        .nav-item {
-            display: flex; align-items: center; gap: 12px;
-            padding: 14px 18px; margin-bottom: 8px;
-            border-radius: 12px; cursor: pointer;
-            color: var(--text-light); font-weight: 500;
+        .nav-item { padding: 15px; margin-bottom: 10px; border-radius: 12px; cursor: pointer; }
+        .nav-item:hover, .nav-item.active { background: #eff6ff; color: #1e3a8a; }
+        
+        .main-content { margin-right: 280px; padding: 30px; }
+        .card {
+            background: white; border-radius: 16px; padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;
         }
-        .nav-item:hover, .nav-item.active {
-            background: rgba(30, 58, 138, 0.05); color: var(--primary);
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 700; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 12px; border: 2px solid #e2e8f0;
+            border-radius: 10px; font-size: 15px;
         }
-
-        .main-content { margin-right: 280px; min-height: 100vh; padding: 30px; }
-
-        .btn {
-            padding: 12px 24px; border: none; border-radius: 10px;
-            font-size: 14px; font-weight: 600; cursor: pointer;
-            display: inline-flex; align-items: center; gap: 8px;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            color: white;
-        }
-
-        /* Print Styles */
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 16px; text-align: right; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; font-weight: 700; }
+        
+        .btn-primary { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; }
+        .btn-success { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+        .btn-secondary { background: #f1f5f9; color: #1e293b; border: 1px solid #e2e8f0; }
+        
+        .action-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .action-btns button { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; }
+        
+        #printSection { display: none; background: white; padding: 40px; max-width: 800px; margin: 0 auto; }
+        .invoice-header { display: flex; justify-content: space-between; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid #1e3a8a; }
+        .invoice-title { text-align: center; background: #1e3a8a; color: white; padding: 20px 40px; border-radius: 12px; }
+        .totals { background: #f8fafc; padding: 20px; border-radius: 12px; margin-top: 20px; }
+        .total-row { display: flex; justify-content: space-between; padding: 10px 0; }
+        .total-row.grand { font-size: 20px; font-weight: 800; color: #1e3a8a; border-top: 2px solid #1e3a8a; margin-top: 10px; padding-top: 15px; }
+        
+        .page { display: none; }
+        .page.active { display: block; }
+        
         @media print {
             body * { visibility: hidden; }
             #printSection, #printSection * { visibility: visible; }
-            #printSection {
-                position: absolute; left: 0; top: 0; width: 100%;
-                padding: 20mm; background: white;
-            }
-        }
-
-        #printSection {
-            display: none; background: white; padding: 40px;
-            max-width: 210mm; margin: 0 auto;
-            font-family: 'Tajawal', sans-serif;
+            #printSection { position: absolute; left: 0; top: 0; width: 100%; }
         }
     </style>
 </head>
@@ -140,78 +89,336 @@
     <!-- Login -->
     <div id="loginPage" class="login-container">
         <div class="login-box">
-            <div class="login-logo">
-                <div class="logo-icon">س</div>
-                <h1>سند لاكسسوارات</h1>
-                <p>نظام المحاسبة المتكامل</p>
-            </div>
+            <div class="logo-icon">س</div>
+            <h1 style="color: #1e3a8a; margin-bottom: 10px;">سند لاكسسوارات</h1>
+            <p style="color: #64748b; margin-bottom: 30px;">نظام الفواتير والمحاسبة</p>
             <div class="input-group">
-                <i class="fas fa-user"></i>
                 <input type="text" id="username" placeholder="اسم المستخدم" value="admin">
             </div>
             <div class="input-group">
-                <i class="fas fa-lock"></i>
                 <input type="password" id="password" placeholder="كلمة المرور" value="123456">
             </div>
-            <button class="login-btn" onclick="login()">تسجيل الدخول</button>
+            <button class="btn" onclick="login()">تسجيل الدخول</button>
         </div>
     </div>
 
     <!-- App -->
-    <div id="app" class="app-container">
+    <div id="app" class="app">
         <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2>سند لاكسسوارات</h2>
-            </div>
-            <nav class="nav-menu">
-                <div class="nav-item active" onclick="showPage('dashboard')">الرئيسية</div>
-                <div class="nav-item" onclick="showPage('newInvoice')">فاتورة جديدة</div>
-                <div class="nav-item" onclick="showPage('invoices')">الفواتير</div>
+            <h2 style="color: #1e3a8a; margin-bottom: 30px;">سند لاكسسوارات</h2>
+            <nav>
+                <div class="nav-item active" onclick="showPage('dashboard')">📊 الرئيسية</div>
+                <div class="nav-item" onclick="showPage('newInvoice')">📝 فاتورة جديدة</div>
+                <div class="nav-item" onclick="showPage('invoices')">📄 الفواتير</div>
+                <div class="nav-item" onclick="showPage('settings')">⚙️ الإعدادات</div>
             </nav>
         </aside>
-        
+
         <main class="main-content">
-            <!-- Pages here -->
+            <!-- Dashboard -->
+            <div id="dashboard" class="page active">
+                <h1 style="margin-bottom: 20px;">لوحة التحكم</h1>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <div class="card">
+                        <h3 style="color: #64748b;">مبيعات اليوم</h3>
+                        <p style="font-size: 32px; font-weight: 800; color: #1e3a8a;" id="todaySales">0 ج.س</p>
+                    </div>
+                    <div class="card">
+                        <h3 style="color: #64748b;">عدد الفواتير</h3>
+                        <p style="font-size: 32px; font-weight: 800; color: #10b981;" id="totalInvoices">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Invoice -->
             <div id="newInvoice" class="page">
-                <h1>فاتورة جديدة</h1>
-                <button class="btn btn-primary" onclick="saveInvoice()">حفظ</button>
-                <button class="btn btn-success" onclick="saveAndPrint()">حفظ وطباعة</button>
-                <button class="btn btn-warning" onclick="downloadPDF()">تحميل PDF</button>
+                <h1 style="margin-bottom: 20px;">فاتورة جديدة</h1>
+                <div class="card">
+                    <div class="form-group">
+                        <label>رقم الفاتورة</label>
+                        <input type="text" id="invNumber" readonly>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label>اسم العميل</label>
+                            <input type="text" id="customerName" placeholder="اسم العميل">
+                        </div>
+                        <div class="form-group">
+                            <label>رقم الهاتف</label>
+                            <input type="text" id="customerPhone" placeholder="09xxxxxxxx">
+                        </div>
+                    </div>
+                    
+                    <h3 style="margin: 20px 0;">المنتجات</h3>
+                    <table id="itemsTable">
+                        <thead>
+                            <tr>
+                                <th>المنتج</th>
+                                <th>الكمية</th>
+                                <th>السعر</th>
+                                <th>الإجمالي</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsBody"></tbody>
+                    </table>
+                    <button class="btn btn-secondary" onclick="addItem()" style="width: auto; margin-bottom: 20px;">+ إضافة منتج</button>
+                    
+                    <div class="totals">
+                        <div class="total-row"><span>المجموع:</span><span id="subtotal">0 ج.س</span></div>
+                        <div class="total-row"><span>الضريبة (15%):</span><span id="tax">0 ج.س</span></div>
+                        <div class="total-row grand"><span>الإجمالي:</span><span id="grandTotal">0 ج.س</span></div>
+                    </div>
+                    
+                    <div class="action-btns">
+                        <button class="btn-primary" onclick="saveInvoice()">💾 حفظ</button>
+                        <button class="btn-success" onclick="saveAndPrint()">🖨️ حفظ وطباعة</button>
+                        <button class="btn-warning" onclick="downloadPDF()">📄 PDF</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invoices List -->
+            <div id="invoices" class="page">
+                <h1 style="margin-bottom: 20px;">قائمة الفواتير</h1>
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>رقم الفاتورة</th>
+                                <th>العميل</th>
+                                <th>المبلغ</th>
+                                <th>التاريخ</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoicesList"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div id="settings" class="page">
+                <h1 style="margin-bottom: 20px;">إعدادات المحل</h1>
+                <div class="card">
+                    <div class="form-group">
+                        <label>اسم المحل</label>
+                        <input type="text" id="shopName" value="سند لاكسسوارات">
+                    </div>
+                    <div class="form-group">
+                        <label>العنوان</label>
+                        <input type="text" id="shopAddress" placeholder="عنوان المحل">
+                    </div>
+                    <div class="form-group">
+                        <label>الهاتف</label>
+                        <input type="text" id="shopPhone" value="0913678918">
+                    </div>
+                    <button class="btn" onclick="saveSettings()">حفظ الإعدادات</button>
+                </div>
             </div>
         </main>
     </div>
 
-    <!-- Print Section -->
+    <!-- Print Template -->
     <div id="printSection">
-        <!-- Invoice template -->
+        <div class="invoice-header">
+            <div>
+                <h2 id="printShopName" style="color: #1e3a8a;">سند لاكسسوارات</h2>
+                <p id="printShopAddress">العنوان: الخرطوم، السودان</p>
+                <p id="printShopPhone">الهاتف: 0913678918</p>
+            </div>
+            <div class="invoice-title">
+                <h3>فاتورة مبيعات</h3>
+            </div>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <p><strong>رقم الفاتورة:</strong> <span id="printInvNumber"></span></p>
+            <p><strong>العميل:</strong> <span id="printCustomer"></span></p>
+            <p><strong>التاريخ:</strong> <span id="printDate"></span></p>
+        </div>
+        <table>
+            <thead>
+                <tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
+            </thead>
+            <tbody id="printItems"></tbody>
+        </table>
+        <div class="totals">
+            <div class="total-row"><span>المجموع:</span><span id="printSubtotal"></span></div>
+            <div class="total-row"><span>الضريبة:</span><span id="printTax"></span></div>
+            <div class="total-row grand"><span>الإجمالي:</span><span id="printTotal"></span></div>
+        </div>
     </div>
 
     <script>
-        // JavaScript code here
+        // Data
         let invoices = JSON.parse(localStorage.getItem('sanad_invoices')) || [];
-        
+        let settings = JSON.parse(localStorage.getItem('sanad_settings')) || {
+            shopName: 'سند لاكسسوارات',
+            shopAddress: 'الخرطوم، السودان',
+            shopPhone: '0913678918'
+        };
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('invNumber').value = 'INV-' + Date.now().toString().slice(-6);
+            addItem();
+            updateDashboard();
+        });
+
         function login() {
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('app').style.display = 'block';
         }
-        
+
         function showPage(page) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(page).classList.add('active');
+            if (page === 'invoices') loadInvoices();
+            if (page === 'dashboard') updateDashboard();
         }
-        
+
+        function addItem() {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="text" placeholder="اسم المنتج" onchange="calculate()"></td>
+                <td><input type="number" value="1" min="1" onchange="calculate()" style="width: 80px;"></td>
+                <td><input type="number" placeholder="0" onchange="calculate()" style="width: 120px;"></td>
+                <td class="item-total">0</td>
+                <td><button onclick="this.closest('tr').remove(); calculate()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">حذف</button></td>
+            `;
+            document.getElementById('itemsBody').appendChild(row);
+        }
+
+        function calculate() {
+            let subtotal = 0;
+            document.querySelectorAll('#itemsBody tr').forEach(row => {
+                const qty = parseFloat(row.cells[1].querySelector('input').value) || 0;
+                const price = parseFloat(row.cells[2].querySelector('input').value) || 0;
+                const total = qty * price;
+                row.cells[3].textContent = total.toLocaleString() + ' ج.س';
+                subtotal += total;
+            });
+            const tax = subtotal * 0.15;
+            const grand = subtotal + tax;
+            document.getElementById('subtotal').textContent = subtotal.toLocaleString() + ' ج.س';
+            document.getElementById('tax').textContent = tax.toLocaleString() + ' ج.س';
+            document.getElementById('grandTotal').textContent = grand.toLocaleString() + ' ج.س';
+        }
+
+        function collectInvoice() {
+            const items = [];
+            document.querySelectorAll('#itemsBody tr').forEach(row => {
+                const name = row.cells[0].querySelector('input').value;
+                const qty = parseFloat(row.cells[1].querySelector('input').value) || 0;
+                const price = parseFloat(row.cells[2].querySelector('input').value) || 0;
+                if (name && qty > 0) items.push({ name, qty, price, total: qty * price });
+            });
+            
+            if (items.length === 0) { alert('أضف منتجات أولاً'); return null; }
+            
+            const subtotal = items.reduce((s, i) => s + i.total, 0);
+            return {
+                number: document.getElementById('invNumber').value,
+                date: new Date().toISOString(),
+                customer: document.getElementById('customerName').value || 'عميل نقدي',
+                phone: document.getElementById('customerPhone').value,
+                items, subtotal, tax: subtotal * 0.15, total: subtotal * 1.15
+            };
+        }
+
         function saveInvoice() {
-            const invoice = { number: 'INV-' + Date.now(), date: new Date(), total: 100 };
-            invoices.push(invoice);
+            const inv = collectInvoice();
+            if (!inv) return;
+            invoices.push(inv);
             localStorage.setItem('sanad_invoices', JSON.stringify(invoices));
-            alert('تم الحفظ!');
+            alert('✅ تم حفظ الفاتورة!');
+            resetForm();
+            updateDashboard();
         }
-        
+
+        function saveAndPrint() {
+            const inv = collectInvoice();
+            if (!inv) return;
+            invoices.push(inv);
+            localStorage.setItem('sanad_invoices', JSON.stringify(invoices));
+            printInv(inv);
+            resetForm();
+            updateDashboard();
+        }
+
+        function printInv(inv) {
+            document.getElementById('printShopName').textContent = settings.shopName;
+            document.getElementById('printShopAddress').textContent = 'العنوان: ' + settings.shopAddress;
+            document.getElementById('printShopPhone').textContent = 'الهاتف: ' + settings.shopPhone;
+            document.getElementById('printInvNumber').textContent = inv.number;
+            document.getElementById('printCustomer').textContent = inv.customer;
+            document.getElementById('printDate').textContent = new Date().toLocaleDateString('ar-SD');
+            document.getElementById('printItems').innerHTML = inv.items.map(i => 
+                `<tr><td>${i.name}</td><td>${i.qty}</td><td>${i.price.toLocaleString()} ج.س</td><td>${i.total.toLocaleString()} ج.س</td></tr>`
+            ).join('');
+            document.getElementById('printSubtotal').textContent = inv.subtotal.toLocaleString() + ' ج.س';
+            document.getElementById('printTax').textContent = inv.tax.toLocaleString() + ' ج.س';
+            document.getElementById('printTotal').textContent = inv.total.toLocaleString() + ' ج.س';
+            
+            const ps = document.getElementById('printSection');
+            ps.style.display = 'block';
+            setTimeout(() => { window.print(); ps.style.display = 'none'; }, 100);
+        }
+
         function downloadPDF() {
-            const element = document.getElementById('printSection');
-            element.style.display = 'block';
-            html2pdf().from(element).save('فاتورة.pdf');
-            element.style.display = 'none';
+            const inv = collectInvoice();
+            if (!inv) return;
+            
+            printInv(inv);
+            const ps = document.getElementById('printSection');
+            ps.style.display = 'block';
+            
+            html2pdf().set({
+                margin: 10, filename: `فاتورة_${inv.number}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4' }
+            }).from(ps).save().then(() => ps.style.display = 'none');
+        }
+
+        function resetForm() {
+            document.getElementById('invNumber').value = 'INV-' + Date.now().toString().slice(-6);
+            document.getElementById('customerName').value = '';
+            document.getElementById('customerPhone').value = '';
+            document.getElementById('itemsBody').innerHTML = '';
+            addItem();
+            calculate();
+        }
+
+        function loadInvoices() {
+            const tbody = document.getElementById('invoicesList');
+            tbody.innerHTML = invoices.slice().reverse().map(inv => `
+                <tr>
+                    <td>${inv.number}</td>
+                    <td>${inv.customer}</td>
+                    <td>${inv.total.toLocaleString()} ج.س</td>
+                    <td>${new Date(inv.date).toLocaleDateString('ar-SD')}</td>
+                    <td>
+                        <button onclick="printInv(${JSON.stringify(inv).replace(/"/g, '&quot;')})" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">طباعة</button>
+                    </td>
+                </tr>
+            `).join('') || '<tr><td colspan="5" style="text-align: center;">لا توجد فواتير</td></tr>';
+        }
+
+        function updateDashboard() {
+            const today = new Date().toDateString();
+            const todaySales = invoices
+                .filter(i => new Date(i.date).toDateString() === today)
+                .reduce((s, i) => s + i.total, 0);
+            document.getElementById('todaySales').textContent = todaySales.toLocaleString() + ' ج.س';
+            document.getElementById('totalInvoices').textContent = invoices.length;
+        }
+
+        function saveSettings() {
+            settings.shopName = document.getElementById('shopName').value;
+            settings.shopAddress = document.getElementById('shopAddress').value;
+            settings.shopPhone = document.getElementById('shopPhone').value;
+            localStorage.setItem('sanad_settings', JSON.stringify(settings));
+            alert('تم حفظ الإعدادات!');
         }
     </script>
 </body>
