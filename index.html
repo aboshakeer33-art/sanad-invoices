@@ -2,8 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سند لاكسسوارات - </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>سند لاكسسوارات - نظام الفواتير</title>
     <style>
         * {
             margin: 0;
@@ -539,45 +539,6 @@
         .page { display: none; }
         .page.active { display: block; }
 
-        /* للموبايل */
-        @media (max-width: 768px) {
-            .sidebar {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                width: 100%;
-                display: flex;
-                overflow-x: auto;
-                padding: 10px;
-                z-index: 999;
-                border-left: none;
-                border-top: 1px solid #e5e7eb;
-            }
-
-            .nav-item {
-                flex-direction: column;
-                padding: 12px 15px;
-                min-width: 80px;
-                text-align: center;
-                font-size: 12px;
-                margin: 0 5px;
-            }
-
-            .container {
-                flex-direction: column;
-                padding-bottom: 90px;
-            }
-
-            .item-row {
-                grid-template-columns: 1fr;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
         /* Toast */
         .toast {
             position: fixed;
@@ -603,19 +564,216 @@
         .toast.error { background: #dc2626; }
 
         /* ============================================
-           الفاتورة للطباعة - مظبوطة 100%
+           تحسينات الموبايل - Mobile Optimizations
            ============================================ */
-        
-        #printSection {
-            display: none;
-            background: white;
-            color: #1e293b;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            direction: rtl;
-            padding: 40px;
-            max-width: 800px;
-            margin: 0 auto;
+
+        @media (max-width: 768px) {
+            /* الشريط السفلي */
+            .sidebar {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                height: 70px;
+                flex-direction: row;
+                justify-content: space-around;
+                align-items: center;
+                padding: 5px;
+                border-left: none;
+                border-top: 1px solid #e5e7eb;
+                background: white;
+                z-index: 9999;
+                box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+            }
+
+            .nav-item {
+                flex-direction: column;
+                padding: 5px;
+                min-width: 60px;
+                text-align: center;
+                font-size: 11px;
+                margin: 0;
+                border-right: none;
+                border-bottom: 3px solid transparent;
+                border-radius: 12px;
+            }
+
+            .nav-item:hover, .nav-item.active {
+                border-right-color: transparent;
+                border-bottom-color: #1e3a8a;
+                background: #eff6ff;
+            }
+
+            .nav-item span:first-child {
+                width: 28px;
+                height: 28px;
+                font-size: 20px;
+            }
+
+            /* المحتوى */
+            .main-content {
+                padding: 15px;
+                padding-bottom: 90px;
+            }
+
+            /* إخفاء العناصر الزائدة */
+            .logo-text-only p, .currency-badge {
+                display: none;
+            }
+
+            /* تكبير الأزرار */
+            .btn {
+                padding: 16px;
+                font-size: 16px;
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* تحويل الجداول لبطاقات */
+            .data-table {
+                background: transparent;
+                border: none;
+                box-shadow: none;
+            }
+
+            .data-table table, .data-table tbody {
+                display: block;
+            }
+
+            .data-table thead {
+                display: none;
+            }
+
+            .data-table tr {
+                display: block;
+                background: white;
+                margin-bottom: 15px;
+                padding: 20px;
+                border-radius: 16px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+                border: 1px solid #e5e7eb;
+            }
+
+            .data-table td {
+                display: flex;
+                justify-content: space-between;
+                padding: 12px 0;
+                border-bottom: 1px dashed #e5e7eb;
+            }
+
+            .data-table td:last-child {
+                border-bottom: none;
+            }
+
+            .data-table td::before {
+                content: attr(data-label);
+                font-weight: 700;
+                color: #1e3a8a;
+            }
+
+            /* تبسيط التخطيط */
+            .stats-grid, .inventory-grid, .suppliers-grid,
+            .form-row, .item-row {
+                grid-template-columns: 1fr;
+            }
+
+            .payment-methods {
+                flex-direction: column;
+            }
+
+            .payment-method {
+                flex-direction: row;
+                text-align: right;
+                padding: 18px;
+            }
+
+            .payment-icon {
+                margin-bottom: 0;
+                font-size: 28px;
+            }
+
+            /* تكبير المجاميع */
+            .totals-box {
+                padding: 25px;
+            }
+
+            .total-row {
+                font-size: 16px;
+            }
+
+            .total-row.final {
+                font-size: 24px;
+            }
+
+            /* تحسين البطاقات */
+            .product-card, .supplier-card {
+                padding: 25px;
+            }
+
+            /* تكبير حقول الإدخال */
+            .form-control {
+                padding: 16px;
+                font-size: 16px;
+            }
+
+            /* تحسين صفحة الدخول */
+            .login-box {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+
+            .login-box .logo-icon {
+                width: 80px;
+                height: 80px;
+                font-size: 40px;
+            }
+
+            .login-box h1 {
+                font-size: 24px;
+            }
+
+            /* إخفاء زائد */
+            .logout-btn span {
+                display: none;
+            }
+
+            .logout-btn {
+                padding: 10px;
+                width: 45px;
+                height: 45px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
         }
+
+        @media (max-width: 380px) {
+            .nav-item span:last-child {
+                display: none;
+            }
+
+            .nav-icon {
+                width: 35px;
+                height: 35px;
+                font-size: 22px;
+            }
+
+            .page-title {
+                font-size: 24px;
+            }
+        }
+
+        /* منع التكبير الغير مرغوب في iOS */
+        @media (max-width: 768px) {
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+        }
+
+        /* ============================================
+           الفاتورة للطباعة
+           ============================================ */
 
         @media print {
             @page {
@@ -640,7 +798,20 @@
                 width: 100% !important;
                 padding: 20px !important;
                 margin: 0 !important;
+                background: white !important;
+                color: black !important;
             }
+        }
+
+        #printSection {
+            display: none;
+            background: white;
+            color: #1e293b;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            direction: rtl;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
         }
     </style>
 </head>
@@ -673,7 +844,10 @@
             </div>
             <div class="user-info">
                 <span class="currency-badge">الجنيه السوداني (SDG)</span>
-                <button class="logout-btn" onclick="logout()">تسجيل خروج</button>
+                <button class="logout-btn" onclick="logout()">
+                    <span>🚪</span>
+                    <span>خروج</span>
+                </button>
             </div>
         </div>
 
@@ -997,11 +1171,8 @@
         </div>
     </div>
 
-    <!-- ============================================
-         الفاتورة للطباعة - مظبوطة ومختبرة
-         ============================================ -->
+    <!-- الفاتورة للطباعة -->
     <div id="printSection">
-        <!-- ترويسة الفاتورة -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid #1e3a8a;">
             <div style="text-align: right;">
                 <div id="printShopName" style="font-size: 32px; font-weight: 900; color: #1e3a8a; margin-bottom: 10px;">سند لاكسسوارات</div>
@@ -1016,7 +1187,6 @@
             </div>
         </div>
 
-        <!-- معلومات الفاتورة والعميل -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
             <div style="background: #f8fafc; border-radius: 15px; padding: 25px; border: 2px solid #e2e8f0;">
                 <div style="font-size: 16px; font-weight: 800; color: #1e3a8a; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #1e3a8a;">
@@ -1055,7 +1225,6 @@
             </div>
         </div>
 
-        <!-- جدول المنتجات -->
         <table style="width: 100%; border-collapse: separate; border-spacing: 0; margin: 30px 0; font-size: 15px;">
             <thead>
                 <tr style="background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white;">
@@ -1067,12 +1236,9 @@
                     <th style="padding: 18px; text-align: center; width: 150px; border-radius: 10px 0 0 0;">الإجمالي</th>
                 </tr>
             </thead>
-            <tbody id="printItemsTable">
-                <!-- يتملى بالجافاسكريبت -->
-            </tbody>
+            <tbody id="printItemsTable"></tbody>
         </table>
 
-        <!-- المجاميع -->
         <div style="display: flex; justify-content: flex-end; margin-top: 30px;">
             <div style="width: 400px; background: linear-gradient(135deg, #0f172a, #1e293b); border-radius: 20px; padding: 30px; color: white;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 17px;">
@@ -1090,7 +1256,6 @@
             </div>
         </div>
 
-        <!-- التذييل -->
         <div style="margin-top: 60px; text-align: center; padding-top: 30px; border-top: 2px dashed #cbd5e1;">
             <div style="font-size: 20px; font-weight: 800; color: #1e3a8a; margin-bottom: 15px;">شكراً لتعاملكم مع سند لاكسسوارات</div>
             <div id="printFooterNotes" style="font-size: 14px; color: #64748b; margin-bottom: 15px;"></div>
@@ -1153,7 +1318,22 @@
             loadAllInvoices();
             updateReports();
             updateBackupStats();
+            initMobileLabels();
         }
+
+        // تحسين الموبايل
+        function initMobileLabels() {
+            document.querySelectorAll('.data-table').forEach(table => {
+                const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent);
+                table.querySelectorAll('tbody tr').forEach(row => {
+                    row.querySelectorAll('td').forEach((td, index) => {
+                        if (headers[index]) td.setAttribute('data-label', headers[index]);
+                    });
+                });
+            });
+        }
+
+        window.addEventListener('resize', initMobileLabels);
 
         // التنقل
         function showPage(pageName) {
@@ -1198,6 +1378,8 @@
                     </td>
                 </tr>
             `).join('');
+            
+            initMobileLabels();
         }
 
         // العملاء
@@ -1216,6 +1398,8 @@
             
             select.innerHTML = '<option value="">-- عميل جديد --</option>' + 
                 customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            
+            initMobileLabels();
         }
 
         function showAddCustomer() {
@@ -1411,9 +1595,6 @@
             element.classList.add('selected');
         }
 
-        // ============================================
-        // حفظ الفاتورة مع بيانات كاملة للطباعة
-        // ============================================
         function saveInvoice() {
             const items = [];
             let profit = 0;
@@ -1457,6 +1638,8 @@
                 profit: profit,
                 paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
                 paymentStatus: 'paid',
+                paidAmount: grandTotal,
+                remainingAmount: 0,
                 createdAt: new Date().toISOString()
             };
             
@@ -1464,7 +1647,6 @@
             localStorage.setItem('invoices', JSON.stringify(invoices));
             localStorage.setItem('products', JSON.stringify(products));
             
-            // تحديث مشتريات العميل
             const customer = customers.find(c => c.phone === invoice.customerPhone);
             if (customer) {
                 customer.totalPurchases = (customer.totalPurchases || 0) + invoice.total;
@@ -1473,7 +1655,6 @@
             
             showToast('✓ تم حفظ الفاتورة بنجاح');
             
-            // طباعة تلقائية بعد الحفظ
             setTimeout(() => {
                 fillPrintSection(invoice);
                 window.print();
@@ -1495,16 +1676,11 @@
             document.getElementById('customerSelect').value = '';
         }
 
-        // ============================================
-        // ملء بيانات الفاتورة للطباعة - مظبوطة 100%
-        // ============================================
         function fillPrintSection(invoice) {
-            // بيانات المحل
             document.getElementById('printShopName').textContent = settings.shopName || 'سند لاكسسوارات';
             document.getElementById('printShopAddress').textContent = 'العنوان: ' + (settings.shopAddress || 'الخرطوم، السودان');
             document.getElementById('printShopPhone').textContent = 'الهاتف: ' + (settings.shopPhone || '0913678918');
             
-            // بيانات الفاتورة
             document.getElementById('printInvoiceNum').textContent = invoice.number;
             document.getElementById('printDate').textContent = new Date(invoice.date).toLocaleDateString('ar-SD');
             
@@ -1512,12 +1688,10 @@
                                invoice.paymentMethod === 'bank' ? 'بنكي' : 'آجل';
             document.getElementById('printPaymentMethod').textContent = paymentText;
             
-            // بيانات العميل
             document.getElementById('printCustomer').textContent = invoice.customerName;
             document.getElementById('printCustomerPhone').textContent = invoice.customerPhone || '-';
             document.getElementById('printDeliveryAddress').textContent = '-';
             
-            // المنتجات
             let itemsHtml = '';
             invoice.items.forEach((item, index) => {
                 itemsHtml += `
@@ -1533,18 +1707,13 @@
             });
             document.getElementById('printItemsTable').innerHTML = itemsHtml;
             
-            // المجاميع
             document.getElementById('printSubtotal').textContent = invoice.subtotal.toLocaleString() + ' ج.س';
             document.getElementById('printDiscount').textContent = (invoice.discount || 0).toLocaleString() + ' ج.س';
             document.getElementById('printGrandTotal').textContent = invoice.total.toLocaleString() + ' ج.س';
-            
-            // التذييل
             document.getElementById('printFooterNotes').textContent = settings.shopNotes || '';
         }
 
-        // معاينة وطباعة قبل الحفظ
         function previewAndPrint() {
-            // جمع البيانات الحالية
             const items = [];
             document.querySelectorAll('.item-row').forEach(row => {
                 const name = row.children[0].value;
@@ -1582,7 +1751,6 @@
             window.print();
         }
 
-        // طباعة فاتورة محفوظة
         function printInvoice(invoiceNumber) {
             const invoice = invoices.find(inv => inv.number === invoiceNumber);
             if (!invoice) {
@@ -1594,7 +1762,6 @@
             window.print();
         }
 
-        // قائمة الفواتير
         function loadAllInvoices() {
             const tbody = document.getElementById('allInvoicesTable');
             if (invoices.length === 0) {
@@ -1615,6 +1782,8 @@
                     </td>
                 </tr>
             `).join('');
+            
+            initMobileLabels();
         }
 
         function filterInvoices() {
@@ -1650,7 +1819,6 @@
             }
         }
 
-        // التقارير
         function updateReports() {
             const now = new Date();
             const currentMonth = now.getMonth();
@@ -1683,7 +1851,6 @@
             document.getElementById('bestProduct').textContent = bestProduct;
         }
 
-        // نسخ احتياطي
         function updateBackupStats() {
             document.getElementById('backupInvoices').textContent = invoices.length;
             document.getElementById('backupCustomers').textContent = customers.length;
@@ -1739,7 +1906,6 @@
             input.value = '';
         }
 
-        // Toast
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             toast.textContent = message;
@@ -1748,7 +1914,6 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // Init
         if (products.length === 0) {
             importDefaultProducts();
         }
