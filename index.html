@@ -16,7 +16,6 @@
       --dark:#111827;
       --gold:#d4af37;
       --blue:#1e3a8a;
-      --blue2:#3b82f6;
       --green:#059669;
       --red:#dc2626;
       --orange:#d97706;
@@ -33,7 +32,6 @@
 
     .hidden { display:none !important; }
 
-    /* Splash */
     #splashScreen{
       position: fixed; inset: 0;
       background: linear-gradient(135deg, #111827, #1e3a8a);
@@ -50,7 +48,6 @@
     .splash-title{ font-size:30px; font-weight:900; }
     .splash-sub{ opacity:.85; margin-top:10px; }
 
-    /* Login */
     .login-wrap{
       min-height:100vh;
       display:flex;
@@ -83,7 +80,6 @@
       color:var(--muted); margin-bottom:20px;
     }
 
-    /* Layout */
     .app-shell{ display:none; }
     .topbar{
       position:sticky; top:0; z-index:1000;
@@ -123,7 +119,6 @@
       margin-bottom:18px;
     }
 
-    /* Cards */
     .card{
       background:var(--card);
       border:1px solid var(--line);
@@ -161,7 +156,6 @@
       gap:12px;
     }
 
-    /* Forms */
     .form-group{ margin-bottom:14px; }
     .form-label{
       display:block;
@@ -184,7 +178,6 @@
       box-shadow:0 0 0 4px rgba(59,130,246,.12);
     }
 
-    /* Buttons */
     .btn{
       border:none;
       border-radius:14px;
@@ -195,6 +188,7 @@
       transition:.2s;
     }
     .btn:hover{ transform:translateY(-1px); }
+    .btn:disabled{ opacity:.6; cursor:not-allowed; transform:none; }
     .btn-primary{ background:linear-gradient(135deg,#111827,#1e3a8a); color:#fff; }
     .btn-gold{ background:linear-gradient(135deg,#b8860b,#d4af37); color:#111827; }
     .btn-success{ background:linear-gradient(135deg,#047857,#10b981); color:#fff; }
@@ -203,7 +197,6 @@
     .btn-warning{ background:linear-gradient(135deg,#b45309,#f59e0b); color:#fff; }
     .btn-block{ width:100%; }
 
-    /* Item row */
     .item-row{
       border:1px solid var(--line);
       border-radius:18px;
@@ -276,6 +269,7 @@
       justify-content:space-between;
       gap:10px;
       margin-bottom:8px;
+      flex-wrap:wrap;
     }
     .mobile-card-row:last-child{ margin-bottom:0; }
 
@@ -299,9 +293,11 @@
       padding:8px 6px 10px;
       z-index:1000;
       box-shadow:0 -8px 24px rgba(0,0,0,.08);
+      overflow-x:auto;
     }
     .nav-item{
       flex:1;
+      min-width:80px;
       background:none; border:none; cursor:pointer;
       color:#6b7280; font-weight:800; font-size:11px;
       display:flex; flex-direction:column; align-items:center; gap:5px;
@@ -328,6 +324,8 @@
       z-index:9999;
       transition:.3s;
       font-weight:800;
+      max-width:90%;
+      text-align:center;
     }
     .toast.show{
       opacity:1;
@@ -345,7 +343,6 @@
       margin-bottom:16px;
     }
 
-    /* Print area */
     #printSection{ display:none; }
 
     @media print {
@@ -484,7 +481,6 @@
     </div>
 
     <div class="main">
-      <!-- Dashboard -->
       <section id="dashboard" class="page active">
         <div class="page-title">📊 لوحة التحكم</div>
 
@@ -515,7 +511,6 @@
         </div>
       </section>
 
-      <!-- Sales -->
       <section id="invoice" class="page">
         <div class="page-title">📝 فاتورة مبيعات</div>
 
@@ -585,12 +580,12 @@
 
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
             <button class="btn btn-success" onclick="saveSaleInvoice()">💾 حفظ وطباعة</button>
+            <button class="btn btn-secondary" onclick="shareCurrentSaleOnWhatsApp()">📲 واتساب</button>
             <button class="btn btn-secondary" onclick="initSaleInvoice()">↺ فاتورة جديدة</button>
           </div>
         </div>
       </section>
 
-      <!-- Purchase -->
       <section id="purchase" class="page">
         <div class="page-title">📥 فاتورة مشتريات</div>
 
@@ -669,7 +664,6 @@
         </div>
       </section>
 
-      <!-- Invoices List -->
       <section id="invoicesList" class="page">
         <div class="page-title">📋 سجل الفواتير</div>
 
@@ -681,7 +675,6 @@
         <div id="invoicesListContent"></div>
       </section>
 
-      <!-- Inventory -->
       <section id="inventory" class="page">
         <div class="page-title">📦 المخزون</div>
 
@@ -696,7 +689,6 @@
         <div id="productsList"></div>
       </section>
 
-      <!-- Expenses -->
       <section id="expenses" class="page">
         <div class="page-title">💸 المصروفات</div>
 
@@ -736,7 +728,6 @@
         <div id="expensesList"></div>
       </section>
 
-      <!-- Reports -->
       <section id="reports" class="page">
         <div class="page-title">📊 التقارير</div>
 
@@ -760,6 +751,7 @@
               <div class="total-row"><span>إجمالي المبيعات</span><span id="reportTotalSales">0 ج.س</span></div>
               <div class="total-row"><span>إجمالي المشتريات</span><span id="reportTotalPurchases">0 ج.س</span></div>
               <div class="total-row"><span>إجمالي المصروفات</span><span id="reportTotalExpenses">0 ج.س</span></div>
+              <div class="total-row"><span>إجمالي المرتجعات</span><span id="reportTotalReturns">0 ج.س</span></div>
               <div class="total-row final"><span>صافي الربح</span><span id="reportNetProfit">0 ج.س</span></div>
             </div>
           </div>
@@ -771,7 +763,6 @@
         </div>
       </section>
 
-      <!-- Settings -->
       <section id="settings" class="page">
         <div class="page-title">⚙️ الإعدادات</div>
 
@@ -853,9 +844,27 @@
     const defaultProducts = [
       { name: 'مفصلات جناح المونيوم بستم', cartonQty: 200, costPrice: 1845, sellPrice: 2768, stock: 1000, minStock: 100, supplier: 'مورد عام' },
       { name: 'مفصلات بستم نص ركوب', cartonQty: 200, costPrice: 1845, sellPrice: 2768, stock: 1000, minStock: 100, supplier: 'مورد عام' },
+      { name: 'مفصلات فراشة باب خشب', cartonQty: 50, costPrice: 5800, sellPrice: 8700, stock: 500, minStock: 50, supplier: 'مورد عام' },
       { name: 'مفصلات جناح عادي', cartonQty: 200, costPrice: 1755, sellPrice: 2633, stock: 1000, minStock: 100, supplier: 'مورد عام' },
-      { name: 'كالون باب حديد', cartonQty: 12, costPrice: 33500, sellPrice: 42000, stock: 120, minStock: 12, supplier: 'مورد عام' },
-      { name: 'كالون المونيوم', cartonQty: 12, costPrice: 20500, sellPrice: 26000, stock: 120, minStock: 12, supplier: 'مورد عام' }
+      { name: 'كالون باب حديد ماسورة', cartonQty: 12, costPrice: 33500, sellPrice: 50250, stock: 120, minStock: 12, supplier: 'مورد عام' },
+      { name: 'كالون المونيوم', cartonQty: 12, costPrice: 20500, sellPrice: 30750, stock: 120, minStock: 12, supplier: 'مورد عام' },
+      { name: 'كالون خشب 45', cartonQty: 12, costPrice: 41500, sellPrice: 62250, stock: 120, minStock: 12, supplier: 'مورد عام' },
+      { name: 'كالون خشب 40', cartonQty: 12, costPrice: 41500, sellPrice: 62250, stock: 120, minStock: 12, supplier: 'مورد عام' },
+      { name: 'قفل أبواب صلب', cartonQty: 12, costPrice: 17800, sellPrice: 26700, stock: 120, minStock: 12, supplier: 'مورد عام' },
+      { name: 'مسكة باب شقة', cartonQty: 12, costPrice: 22500, sellPrice: 33750, stock: 120, minStock: 12, supplier: 'مورد عام' },
+      { name: 'مسكة باب شقة تركي خفيف', cartonQty: 12, costPrice: 20500, sellPrice: 30750, stock: 120, minStock: 12, supplier: 'مورد عام' },
+      { name: 'مسكة بلكونة', cartonQty: 12, costPrice: 2800, sellPrice: 4200, stock: 200, minStock: 20, supplier: 'مورد عام' },
+      { name: 'مسكة شباك لكزس', cartonQty: 24, costPrice: 6900, sellPrice: 10350, stock: 240, minStock: 24, supplier: 'مورد عام' },
+      { name: 'مسكة شباك سحاب', cartonQty: 20, costPrice: 4300, sellPrice: 6450, stock: 200, minStock: 20, supplier: 'مورد عام' },
+      { name: 'مسكة درج', cartonQty: 250, costPrice: 1350, sellPrice: 2025, stock: 500, minStock: 50, supplier: 'مورد عام' },
+      { name: 'كفر شباك كبير', cartonQty: 100, costPrice: 1200, sellPrice: 1800, stock: 1000, minStock: 100, supplier: 'مورد عام' },
+      { name: 'كفر شباك صغير', cartonQty: 100, costPrice: 500, sellPrice: 750, stock: 1000, minStock: 100, supplier: 'مورد عام' },
+      { name: 'سلندر 5 مفتاح كمبيوتر', cartonQty: 12, costPrice: 24800, sellPrice: 37200, stock: 120, minStock: 12, supplier: 'مورد عام' },
+      { name: 'سلندر 3 مفتاح عادي', cartonQty: 12, costPrice: 5500, sellPrice: 8250, stock: 120, minStock: 12, supplier: 'مورد عام' },
+      { name: 'ترباس صغير', cartonQty: 12, costPrice: 2900, sellPrice: 4350, stock: 120, minStock: 12, supplier: 'مورد عام' },
+      { name: 'ترباس وسط', cartonQty: 12, costPrice: 2900, sellPrice: 4350, stock: 120, minStock: 12, supplier: 'مورد عام' },
+      { name: 'ترباس كبير', cartonQty: 12, costPrice: 2900, sellPrice: 4350, stock: 120, minStock: 12, supplier: 'مورد عام' },
+      { name: 'برشام المونيوم 4 مم', cartonQty: 10, costPrice: 12600, sellPrice: 18900, stock: 100, minStock: 10, supplier: 'مورد عام' }
     ];
 
     const expenseTypes = {
@@ -896,6 +905,10 @@
     }
 
     function initApp() {
+      if (!products.length) {
+        products = [...defaultProducts];
+        saveAll();
+      }
       loadSettings();
       initSaleInvoice();
       initPurchaseInvoice();
@@ -943,20 +956,21 @@
       localStorage.setItem('sanad_settings', JSON.stringify(settings));
     }
 
-    // Dashboard
     function updateDashboard() {
       const today = new Date().toDateString();
 
       const todaySales = invoices
-        .filter(i => new Date(i.date).toDateString() === today && i.paymentStatus === 'paid')
+        .filter(i => new Date(i.date).toDateString() === today && i.paymentStatus === 'paid' && !i.returned)
         .reduce((s, i) => s + i.total, 0);
 
       const todayPurchases = purchaseInvoices
-        .filter(i => new Date(i.date).toDateString() === today)
+        .filter(i => new Date(i.date).toDateString() === today && !i.returned)
         .reduce((s, i) => s + i.total, 0);
 
-      const totalProfit = invoices.reduce((s, i) => s + (i.profit || 0), 0);
-      const totalPurchases = purchaseInvoices.reduce((s, i) => s + i.total, 0);
+      const totalProfit = invoices
+        .filter(i => !i.returned)
+        .reduce((s, i) => s + (i.profit || 0), 0);
+
       const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
       const cashBalance = totalProfit - totalExpenses;
 
@@ -965,7 +979,7 @@
       document.getElementById('netProfit').textContent = (totalProfit - totalExpenses).toLocaleString();
       document.getElementById('cashBalance').textContent = cashBalance.toLocaleString();
 
-      const lowStock = products.filter(p => p.stock <= p.minStock);
+      const lowStock = products.filter(p => p.stock <= (p.minStock || 0));
       const alertBox = document.getElementById('lowStockAlert');
       if (lowStock.length > 0) {
         alertBox.classList.remove('hidden');
@@ -1011,7 +1025,6 @@
       }).join('');
     }
 
-    // Sales
     function initSaleInvoice() {
       const d = new Date();
       document.getElementById('saleInvoiceNumber').value =
@@ -1167,6 +1180,7 @@
       const paymentMethod = document.getElementById('salePaymentMethod').value;
 
       const inv = {
+        id: Date.now().toString(),
         number: document.getElementById('saleInvoiceNumber').value,
         date: document.getElementById('saleDate').value,
         customerName: document.getElementById('saleCustomerName').value || 'عميل نقدي',
@@ -1178,7 +1192,8 @@
         profit: Math.max(0, profit - discount),
         paymentMethod,
         paymentStatus: paymentMethod === 'credit' ? 'unpaid' : 'paid',
-        type: 'sale'
+        type: 'sale',
+        returned: false
       };
 
       invoices.push(inv);
@@ -1206,7 +1221,27 @@
       }, 300);
     }
 
-    // Purchase
+    function shareCurrentSaleOnWhatsApp() {
+      const phone = normalizePhone(document.getElementById('saleCustomerPhone').value);
+      const customer = document.getElementById('saleCustomerName').value || 'عميلنا الكريم';
+      const number = document.getElementById('saleInvoiceNumber').value;
+      const total = document.getElementById('saleGrandTotal').textContent;
+      if (!phone) {
+        showToast('أدخل رقم العميل أولاً', 'error');
+        return;
+      }
+      const msg = `السلام عليكم ${customer}
+فاتورتك من ${settings.shopName}
+رقم الفاتورة: ${number}
+الإجمالي: ${total}
+ملاحظة: يمكن حفظ الفاتورة PDF من الطباعة ثم إرسالها كمرفق.`;
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function normalizePhone(phone) {
+      return (phone || '').replace(/[^\d]/g, '').replace(/^0+/, '');
+    }
+
     function initPurchaseInvoice() {
       const d = new Date();
       document.getElementById('purchaseInvoiceNumber').value =
@@ -1379,6 +1414,7 @@
       const paymentMethod = document.getElementById('purchasePaymentMethod').value;
 
       const inv = {
+        id: Date.now().toString(),
         number: document.getElementById('purchaseInvoiceNumber').value,
         date: document.getElementById('purchaseDate').value,
         supplierName: document.getElementById('purchaseSupplierName').value || 'مورد عام',
@@ -1390,7 +1426,8 @@
         note: document.getElementById('purchaseNote').value || '',
         paymentMethod,
         paymentStatus: paymentMethod === 'credit' ? 'unpaid' : 'paid',
-        type: 'purchase'
+        type: 'purchase',
+        returned: false
       };
 
       purchaseInvoices.push(inv);
@@ -1418,7 +1455,82 @@
       }, 300);
     }
 
-    // Print
+    function switchInvoiceTab(type, el) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      loadInvoicesList(type);
+    }
+
+    function loadInvoicesList(type) {
+      const container = document.getElementById('invoicesListContent');
+      const list = type === 'sales' ? invoices : purchaseInvoices;
+
+      if (!list.length) {
+        container.innerHTML = `<div class="mobile-card"><div class="center" style="color:#6b7280;">لا توجد فواتير</div></div>`;
+        return;
+      }
+
+      container.innerHTML = list.slice().reverse().map(inv => {
+        const isReturned = inv.returned === true;
+        const returnLabel = isReturned ? 'تم المرتجع' : 'مرتجع';
+        const returnDisabled = isReturned ? 'disabled' : '';
+
+        return `
+          <div class="mobile-card" style="${isReturned ? 'opacity:.75;border:2px dashed #dc2626;' : ''}">
+            <div class="mobile-card-row">
+              <strong>${inv.number}</strong>
+              <span class="status-badge ${inv.paymentStatus === 'paid' ? 'status-paid' : 'status-unpaid'}">
+                ${inv.paymentStatus === 'paid' ? 'مدفوعة' : 'آجل'}
+              </span>
+            </div>
+
+            <div class="mobile-card-row">
+              <span>${type === 'sales' ? (inv.customerName || '-') : (inv.supplierName || '-')}</span>
+              <strong>${Number(inv.total || 0).toLocaleString()} ج.س</strong>
+            </div>
+
+            <div class="mobile-card-row">
+              <span style="color:#6b7280;">${new Date(inv.date).toLocaleDateString('ar-SD')}</span>
+              <span style="color:${isReturned ? '#dc2626' : '#6b7280'};font-weight:800;">
+                ${isReturned ? 'فاتورة مرتجعة' : `${inv.items.length} أصناف`}
+              </span>
+            </div>
+
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+              <button class="btn btn-secondary" onclick='printInvoice(${JSON.stringify(inv)}, "${type === 'sales' ? 'sale' : 'purchase'}")'>
+                🖨️ طباعة
+              </button>
+
+              ${
+                type === 'sales'
+                  ? `<button class="btn btn-danger" ${returnDisabled} onclick='returnSaleInvoice("${inv.number}")'>↩️ ${returnLabel}</button>
+                     <button class="btn btn-warning" ${returnDisabled} onclick='returnSaleInvoicePartial("${inv.number}")'>↩️ مرتجع جزئي</button>
+                     <button class="btn btn-secondary" onclick='shareSavedInvoiceOnWhatsApp("${inv.number}")'>📲 واتساب</button>`
+                  : `<button class="btn btn-danger" ${returnDisabled} onclick='returnPurchaseInvoice("${inv.number}")'>↩️ ${returnLabel}</button>
+                     <button class="btn btn-warning" ${returnDisabled} onclick='returnPurchaseInvoicePartial("${inv.number}")'>↩️ مرتجع جزئي</button>`
+              }
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function shareSavedInvoiceOnWhatsApp(invoiceNumber) {
+      const inv = invoices.find(x => x.number === invoiceNumber);
+      if (!inv) return showToast('الفاتورة غير موجودة', 'error');
+      const phone = normalizePhone(inv.customerPhone);
+      if (!phone) return showToast('رقم العميل غير موجود', 'error');
+
+      const msg = `السلام عليكم ${inv.customerName || ''}
+فاتورتك من ${settings.shopName}
+رقم الفاتورة: ${inv.number}
+التاريخ: ${new Date(inv.date).toLocaleDateString('ar-SD')}
+الإجمالي: ${Number(inv.total).toLocaleString()} ج.س
+ملاحظة: يمكن حفظ الفاتورة PDF من الطباعة ثم إرسالها كمرفق.`;
+
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
     function printInvoice(inv, type) {
       const printDiv = document.getElementById('printSection');
       const isSale = type === 'sale';
@@ -1429,11 +1541,11 @@
       const personName = isSale ? inv.customerName : inv.supplierName;
       const personPhone = isSale ? inv.customerPhone : inv.supplierPhone;
 
-      const rows = inv.items.map((item, i) => `
+      const rows = (inv.items || []).map((item, i) => `
         <tr style="background:${i % 2 ? '#fafafa' : '#ffffff'};">
           <td style="padding:10px;text-align:center;">${i + 1}</td>
           <td style="padding:10px;text-align:right;">${item.name}</td>
-          <td style="padding:10px;text-align:center;">${item.qty}</td>
+          <td style="padding:10px;text-align:center;">${Number(item.qty || 0).toLocaleString()}</td>
           <td style="padding:10px;text-align:center;">${Number(isSale ? item.price : item.cost).toLocaleString()} ج.س</td>
           <td style="padding:10px;text-align:center;font-weight:900;">${Number(item.total).toLocaleString()} ج.س</td>
         </tr>
@@ -1466,6 +1578,12 @@
             </div>
 
             <div style="padding:20px 24px;">
+              ${(inv.returned === true) ? `
+                <div style="margin-bottom:14px;padding:12px 16px;background:#fee2e2;color:#991b1b;border-radius:12px;font-weight:900;">
+                  فاتورة مرتجعة
+                </div>
+              ` : ''}
+
               <table style="width:100%;border-collapse:collapse;">
                 <thead>
                   <tr style="background:${gold};color:#111;">
@@ -1524,41 +1642,176 @@
       }, 200);
     }
 
-    // Invoices list
-    function switchInvoiceTab(type, el) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      el.classList.add('active');
-      loadInvoicesList(type);
+    function returnSaleInvoice(invoiceNumber) {
+      if (!confirm('هل تريد عمل مرتجع كامل لهذه الفاتورة؟')) return;
+
+      const invoice = invoices.find(inv => inv.number === invoiceNumber);
+      if (!invoice) return showToast('الفاتورة غير موجودة', 'error');
+      if (invoice.returned === true) return showToast('هذه الفاتورة مرتجعة مسبقاً', 'error');
+
+      invoice.items.forEach(item => {
+        const product = products.find(p => p.name === item.name);
+        if (product) product.stock += Number(item.qty || 0);
+
+        inventoryLog.push({
+          id: Date.now() + Math.random(),
+          type: 'sale_return',
+          product: item.name,
+          qty: Number(item.qty || 0),
+          date: new Date().toISOString().split('T')[0],
+          invoice: invoice.number,
+          note: 'مرتجع كامل مبيعات'
+        });
+      });
+
+      invoice.returned = true;
+      invoice.returnDate = new Date().toISOString().split('T')[0];
+      invoice.returnType = 'full';
+
+      saveAll();
+      loadInvoicesList('sales');
+      loadProducts();
+      updateDashboard();
+      showToast('تم المرتجع الكامل بنجاح');
     }
 
-    function loadInvoicesList(type) {
-      const container = document.getElementById('invoicesListContent');
-      const list = type === 'sales' ? invoices : purchaseInvoices;
+    function returnPurchaseInvoice(invoiceNumber) {
+      if (!confirm('هل تريد عمل مرتجع كامل لفاتورة الشراء؟')) return;
 
-      if (!list.length) {
-        container.innerHTML = `<div class="mobile-card"><div class="center" style="color:#6b7280;">لا توجد فواتير</div></div>`;
-        return;
+      const invoice = purchaseInvoices.find(inv => inv.number === invoiceNumber);
+      if (!invoice) return showToast('الفاتورة غير موجودة', 'error');
+      if (invoice.returned === true) return showToast('هذه الفاتورة مرتجعة مسبقاً', 'error');
+
+      for (const item of invoice.items) {
+        const product = products.find(p => p.name === item.name);
+        if (product) {
+          const newStock = product.stock - Number(item.qty || 0);
+          if (newStock < 0) return showToast(`لا يمكن عمل مرتجع لأن المخزون لا يكفي للصنف: ${item.name}`, 'error');
+        }
       }
 
-      container.innerHTML = list.slice().reverse().map(inv => `
-        <div class="mobile-card" onclick='printInvoice(${JSON.stringify(inv)}, "${type === 'sales' ? 'sale' : 'purchase'}")' style="cursor:pointer;">
-          <div class="mobile-card-row">
-            <strong>${inv.number}</strong>
-            <span class="status-badge ${inv.paymentStatus === 'paid' ? 'status-paid' : 'status-unpaid'}">${inv.paymentStatus === 'paid' ? 'مدفوعة' : 'آجل'}</span>
-          </div>
-          <div class="mobile-card-row">
-            <span>${type === 'sales' ? inv.customerName : inv.supplierName}</span>
-            <strong>${Number(inv.total).toLocaleString()} ج.س</strong>
-          </div>
-          <div class="mobile-card-row">
-            <span style="color:#6b7280;">${new Date(inv.date).toLocaleDateString('ar-SD')}</span>
-            <span style="color:#6b7280;">${inv.items.length} أصناف</span>
-          </div>
-        </div>
-      `).join('');
+      invoice.items.forEach(item => {
+        const product = products.find(p => p.name === item.name);
+        if (product) product.stock -= Number(item.qty || 0);
+
+        inventoryLog.push({
+          id: Date.now() + Math.random(),
+          type: 'purchase_return',
+          product: item.name,
+          qty: -Number(item.qty || 0),
+          date: new Date().toISOString().split('T')[0],
+          invoice: invoice.number,
+          note: 'مرتجع كامل مشتريات'
+        });
+      });
+
+      invoice.returned = true;
+      invoice.returnDate = new Date().toISOString().split('T')[0];
+      invoice.returnType = 'full';
+
+      saveAll();
+      loadInvoicesList('purchases');
+      loadProducts();
+      updateDashboard();
+      showToast('تم مرتجع الشراء بنجاح');
     }
 
-    // Inventory
+    function returnSaleInvoicePartial(invoiceNumber) {
+      const invoice = invoices.find(inv => inv.number === invoiceNumber);
+      if (!invoice) return showToast('الفاتورة غير موجودة', 'error');
+      if (invoice.returned === true) return showToast('هذه الفاتورة مرتجعة بالكامل', 'error');
+
+      const productName = prompt('اكتب اسم الصنف المراد إرجاعه كما هو موجود في الفاتورة');
+      if (!productName) return;
+
+      const item = invoice.items.find(i => i.name === productName);
+      if (!item) return showToast('الصنف غير موجود في الفاتورة', 'error');
+
+      const qty = parseFloat(prompt(`أدخل كمية المرتجع للصنف: ${item.name}\nالكمية المباعة: ${item.qty}`));
+      if (!qty || qty <= 0) return;
+
+      const returnedQty = Number(item.returnedQty || 0);
+      const availableQty = Number(item.qty) - returnedQty;
+
+      if (qty > availableQty) return showToast(`الكمية المتاحة للمرتجع فقط: ${availableQty}`, 'error');
+
+      const product = products.find(p => p.name === item.name);
+      if (product) product.stock += qty;
+
+      item.returnedQty = returnedQty + qty;
+      item.partialReturned = item.returnedQty > 0;
+
+      inventoryLog.push({
+        id: Date.now() + Math.random(),
+        type: 'sale_return_partial',
+        product: item.name,
+        qty: qty,
+        date: new Date().toISOString().split('T')[0],
+        invoice: invoice.number,
+        note: 'مرتجع جزئي مبيعات'
+      });
+
+      const allReturned = invoice.items.every(i => Number(i.returnedQty || 0) >= Number(i.qty || 0));
+      invoice.returned = allReturned;
+      invoice.returnType = allReturned ? 'full_after_partial' : 'partial';
+      invoice.returnDate = new Date().toISOString().split('T')[0];
+
+      saveAll();
+      loadInvoicesList('sales');
+      loadProducts();
+      updateDashboard();
+      showToast('تم المرتجع الجزئي بنجاح');
+    }
+
+    function returnPurchaseInvoicePartial(invoiceNumber) {
+      const invoice = purchaseInvoices.find(inv => inv.number === invoiceNumber);
+      if (!invoice) return showToast('الفاتورة غير موجودة', 'error');
+      if (invoice.returned === true) return showToast('هذه الفاتورة مرتجعة بالكامل', 'error');
+
+      const productName = prompt('اكتب اسم الصنف المراد إرجاعه كما هو موجود في الفاتورة');
+      if (!productName) return;
+
+      const item = invoice.items.find(i => i.name === productName);
+      if (!item) return showToast('الصنف غير موجود في الفاتورة', 'error');
+
+      const qty = parseFloat(prompt(`أدخل كمية المرتجع للصنف: ${item.name}\nالكمية المشتراة: ${item.qty}`));
+      if (!qty || qty <= 0) return;
+
+      const returnedQty = Number(item.returnedQty || 0);
+      const availableQty = Number(item.qty) - returnedQty;
+
+      if (qty > availableQty) return showToast(`الكمية المتاحة للمرتجع فقط: ${availableQty}`, 'error');
+
+      const product = products.find(p => p.name === item.name);
+      if (!product) return showToast('الصنف غير موجود في المخزون', 'error');
+      if (product.stock < qty) return showToast(`المخزون الحالي لا يكفي لمرتجع الشراء. المتاح: ${product.stock}`, 'error');
+
+      product.stock -= qty;
+      item.returnedQty = returnedQty + qty;
+      item.partialReturned = item.returnedQty > 0;
+
+      inventoryLog.push({
+        id: Date.now() + Math.random(),
+        type: 'purchase_return_partial',
+        product: item.name,
+        qty: -qty,
+        date: new Date().toISOString().split('T')[0],
+        invoice: invoice.number,
+        note: 'مرتجع جزئي مشتريات'
+      });
+
+      const allReturned = invoice.items.every(i => Number(i.returnedQty || 0) >= Number(i.qty || 0));
+      invoice.returned = allReturned;
+      invoice.returnType = allReturned ? 'full_after_partial' : 'partial';
+      invoice.returnDate = new Date().toISOString().split('T')[0];
+
+      saveAll();
+      loadInvoicesList('purchases');
+      loadProducts();
+      updateDashboard();
+      showToast('تم مرتجع الشراء الجزئي بنجاح');
+    }
+
     function loadProducts() {
       const container = document.getElementById('productsList');
 
@@ -1571,14 +1824,14 @@
         <div class="mobile-card">
           <div class="mobile-card-row">
             <strong style="color:#111827;">${p.name}</strong>
-            <strong style="color:${p.stock <= p.minStock ? 'var(--red)' : 'var(--green)'};">${p.stock} حبة</strong>
+            <strong style="color:${p.stock <= (p.minStock || 0) ? 'var(--red)' : 'var(--green)'};">${p.stock} حبة</strong>
           </div>
           <div class="mobile-card-row">
             <span>شراء: ${Number(p.costPrice).toLocaleString()} ج.س</span>
             <span>بيع: ${Number(p.sellPrice).toLocaleString()} ج.س</span>
           </div>
           <div class="mobile-card-row">
-            <span>الحد الأدنى: ${p.minStock}</span>
+            <span>الحد الأدنى: ${p.minStock || 0}</span>
             <span>ربح الحبة: ${(Number(p.sellPrice) - Number(p.costPrice)).toLocaleString()} ج.س</span>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
@@ -1661,7 +1914,7 @@
 
     function showInventoryLog() {
       const container = document.getElementById('productsList');
-      const logs = inventoryLog.slice().reverse().slice(0, 30);
+      const logs = inventoryLog.slice().reverse().slice(0, 40);
 
       if (!logs.length) {
         container.innerHTML = `<div class="mobile-card"><div class="center" style="color:#6b7280;">لا توجد حركات</div></div>`;
@@ -1675,24 +1928,20 @@
             <strong style="color:${log.qty >= 0 ? 'var(--green)' : 'var(--red)'};">${log.qty > 0 ? '+' : ''}${log.qty}</strong>
           </div>
           <div class="mobile-card-row">
-            <span>${log.type === 'sale' ? 'بيع' : log.type === 'purchase' ? 'شراء' : 'تعديل'}</span>
+            <span>${log.note || log.type}</span>
             <span style="color:#6b7280;">${new Date(log.date).toLocaleDateString('ar-SD')}</span>
           </div>
         </div>
       `).join('');
     }
 
-    // Expenses
     function addExpense() {
       const expenseType = document.getElementById('expenseType').value;
       const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
       const date = document.getElementById('expenseDate').value;
       const note = document.getElementById('expenseNote').value;
 
-      if (!amount || !date) {
-        showToast('أدخل البيانات كاملة', 'error');
-        return;
-      }
+      if (!amount || !date) return showToast('أدخل البيانات كاملة', 'error');
 
       expenses.push({
         id: Date.now(),
@@ -1747,19 +1996,18 @@
       showToast('تم حذف المصروف');
     }
 
-    // Reports
     function generateReport() {
       const from = new Date(document.getElementById('reportFromDate').value);
       const to = new Date(document.getElementById('reportToDate').value);
 
       const sales = invoices.filter(i => {
         const d = new Date(i.date);
-        return d >= from && d <= to && i.paymentStatus === 'paid';
+        return d >= from && d <= to && i.paymentStatus === 'paid' && !i.returned;
       }).reduce((s, i) => s + i.total, 0);
 
       const purchases = purchaseInvoices.filter(i => {
         const d = new Date(i.date);
-        return d >= from && d <= to;
+        return d >= from && d <= to && !i.returned;
       }).reduce((s, i) => s + i.total, 0);
 
       const exps = expenses.filter(e => {
@@ -1767,10 +2015,21 @@
         return d >= from && d <= to;
       }).reduce((s, e) => s + e.amount, 0);
 
+      const returnsValue =
+        invoices.filter(i => {
+          const d = new Date(i.returnDate || i.date);
+          return i.returned && d >= from && d <= to;
+        }).reduce((s, i) => s + i.total, 0) +
+        purchaseInvoices.filter(i => {
+          const d = new Date(i.returnDate || i.date);
+          return i.returned && d >= from && d <= to;
+        }).reduce((s, i) => s + i.total, 0);
+
       document.getElementById('reportResults').classList.remove('hidden');
       document.getElementById('reportTotalSales').textContent = sales.toLocaleString() + ' ج.س';
       document.getElementById('reportTotalPurchases').textContent = purchases.toLocaleString() + ' ج.س';
       document.getElementById('reportTotalExpenses').textContent = exps.toLocaleString() + ' ج.س';
+      document.getElementById('reportTotalReturns').textContent = returnsValue.toLocaleString() + ' ج.س';
       document.getElementById('reportNetProfit').textContent = (sales - exps).toLocaleString() + ' ج.س';
     }
 
@@ -1779,12 +2038,12 @@
 
       const monthSales = invoices.filter(i => {
         const d = new Date(i.date);
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() && !i.returned;
       }).reduce((s, i) => s + i.total, 0);
 
       const monthPurchases = purchaseInvoices.filter(i => {
         const d = new Date(i.date);
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() && !i.returned;
       }).reduce((s, i) => s + i.total, 0);
 
       const monthExpenses = expenses.filter(e => {
@@ -1792,11 +2051,17 @@
         return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
       }).reduce((s, e) => s + e.amount, 0);
 
+      const monthReturns = invoices.filter(i => {
+        const d = new Date(i.returnDate || i.date);
+        return i.returned && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      }).reduce((s, i) => s + i.total, 0);
+
       document.getElementById('monthSummary').innerHTML = `
         <div class="mobile-card">
           <div class="mobile-card-row"><span>مبيعات الشهر</span><strong>${monthSales.toLocaleString()} ج.س</strong></div>
           <div class="mobile-card-row"><span>مشتريات الشهر</span><strong>${monthPurchases.toLocaleString()} ج.س</strong></div>
           <div class="mobile-card-row"><span>مصروفات الشهر</span><strong>${monthExpenses.toLocaleString()} ج.س</strong></div>
+          <div class="mobile-card-row"><span>مرتجعات الشهر</span><strong>${monthReturns.toLocaleString()} ج.س</strong></div>
           <div class="mobile-card-row" style="border-top:1px solid #e5e7eb;padding-top:10px;">
             <strong>صافي الربح</strong>
             <strong style="color:var(--green);">${(monthSales - monthExpenses).toLocaleString()} ج.س</strong>
@@ -1805,7 +2070,6 @@
       `;
     }
 
-    // Settings / backup
     function loadSettings() {
       document.getElementById('shopName').value = settings.shopName || '';
       document.getElementById('shopPhone').value = settings.shopPhone || '';
