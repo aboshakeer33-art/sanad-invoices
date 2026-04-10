@@ -1,141 +1,126 @@
-// دالة ملء بيانات الفاتورة للطباعة - لازم تتنفذ قبل window.print()
-function fillInvoiceForPrint() {
-    // بيانات المحل من الإعدادات
-    document.getElementById('printShopName').textContent = settings.shopName || 'سند لاكسسوارات';
-    document.getElementById('printShopAddress').textContent = 'العنوان: ' + (settings.shopAddress || 'الخرطوم، السودان');
-    document.getElementById('printShopPhone').textContent = 'الهاتف: ' + (settings.shopPhone || '0913678918');
-    
-    // بيانات الفاتورة من الحقول
-    document.getElementById('printInvoiceNum').textContent = document.getElementById('invoiceNumber').value;
-    document.getElementById('printDate').textContent = new Date(document.getElementById('invoiceDate').value).toLocaleDateString('ar-SD');
-    
-    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-    const paymentText = paymentMethod === 'cash' ? 'نقدي' : paymentMethod === 'bank' ? 'بنكي' : 'آجل';
-    document.getElementById('printPaymentMethod').textContent = paymentText;
-    
-    // بيانات العميل
-    document.getElementById('printCustomer').textContent = document.getElementById('customerName').value || 'عميل نقدي';
-    document.getElementById('printCustomerPhone').textContent = document.getElementById('customerPhone').value || '-';
-    document.getElementById('printDeliveryAddress').textContent = document.getElementById('deliveryAddress').value || '-';
-    
-    // جمع المنتجات من الجدول
-    let itemsHtml = '';
-    let subtotal = 0;
-    let itemNumber = 1;
-    
-    document.querySelectorAll('.item-row').forEach(row => {
-        const productSelect = row.children[0];
-        const productName = productSelect.value;
-        const qty = parseFloat(row.children[1].value) || 0;
-        const price = parseFloat(row.children[2].value) || 0;
-        const discount = parseFloat(row.children[3].value) || 0;
-        const total = (qty * price) - discount;
-        
-        if (productName && qty > 0) {
-            itemsHtml += `
-                <tr style="border-bottom: 1px solid #e2e8f0;">
-                    <td style="padding: 12px; text-align: center; font-weight: 700; color: #1e3a8a;">${itemNumber}</td>
-                    <td style="padding: 12px; text-align: right; font-weight: 600;">${productName}</td>
-                    <td style="padding: 12px; text-align: center;">${qty}</td>
-                    <td style="padding: 12px; text-align: center;">${price.toLocaleString()} ج.س</td>
-                    <td style="padding: 12px; text-align: center; color: #dc2626;">${discount.toLocaleString()} ج.س</td>
-                    <td style="padding: 12px; text-align: center; font-weight: 700;">${total.toLocaleString()} ج.س</td>
-                </tr>
-            `;
-            subtotal += (qty * price);
-            itemNumber++;
-        }
-    });
-    
-    document.getElementById('printItems').innerHTML = itemsHtml;
-    
-    // المجاميع
-    const discount = parseFloat(document.getElementById('discount').value) || 0;
-    const grandTotal = subtotal - discount;
-    
-    document.getElementById('printSubtotal').textContent = subtotal.toLocaleString() + ' ج.س';
-    document.getElementById('printDiscount').textContent = discount.toLocaleString() + ' ج.س';
-    document.getElementById('printTotal').textContent = grandTotal.toLocaleString() + ' ج.س';
-    
-    // ملاحظات التذييل
-    document.getElementById('printFooterNotes').textContent = settings.shopNotes || '';
-    
-    // إظهار قسم الطباعة مؤقتاً
-    const printSection = document.getElementById('printSection');
-    printSection.style.display = 'block';
-    
-    return true;
-}
+function printInvoice(inv, type) {
 
-// دالة المعاينة والطباعة - المصلحة
-function previewAndPrint() {
-    // أولاً: نملى البيانات
-    fillInvoiceForPrint();
-    
-    // ثانياً: نفتح نافذة الطباعة
-    setTimeout(() => {
-        window.print();
-        
-        // نخفي قسم الطباعة بعد الانتهاء
-        setTimeout(() => {
-            document.getElementById('printSection').style.display = 'none';
-        }, 100);
-    }, 100);
-}
+    const printDiv = document.getElementById('printSection');
 
-// دالة طباعة فاتورة محفوظة
-function printSavedInvoice(invoiceNumber) {
-    const invoice = invoices.find(inv => inv.number === invoiceNumber);
-    if (!invoice) {
-        showToast('✗ الفاتورة غير موجودة', 'error');
-        return;
-    }
-    
-    // ملء البيانات من الفاتورة المحفوظة
-    document.getElementById('printShopName').textContent = settings.shopName || 'سند لاكسسوارات';
-    document.getElementById('printShopAddress').textContent = 'العنوان: ' + (settings.shopAddress || 'الخرطوم، السودان');
-    document.getElementById('printShopPhone').textContent = 'الهاتف: ' + (settings.shopPhone || '0913678918');
-    
-    document.getElementById('printInvoiceNum').textContent = invoice.number;
-    document.getElementById('printDate').textContent = new Date(invoice.date).toLocaleDateString('ar-SD');
-    
-    const paymentText = invoice.paymentMethod === 'cash' ? 'نقدي' : invoice.paymentMethod === 'bank' ? 'بنكي' : 'آجل';
-    document.getElementById('printPaymentMethod').textContent = paymentText;
-    
-    document.getElementById('printCustomer').textContent = invoice.customerName;
-    document.getElementById('printCustomerPhone').textContent = invoice.customerPhone || '-';
-    document.getElementById('printDeliveryAddress').textContent = invoice.deliveryAddress || '-';
-    
-    // المنتجات
+    const isSale = type === 'sale';
+    const title = isSale ? 'فاتورة مبيعات' : 'فاتورة مشتريات';
+
+    const mainColor = '#111827';
+    const gold = '#d4af37';
+
+    const personName = isSale ? inv.customerName : inv.supplierName;
+    const personPhone = isSale ? inv.customerPhone : inv.supplierPhone;
+
     let itemsHtml = '';
-    invoice.items.forEach((item, index) => {
+
+    inv.items.forEach((item, i) => {
         itemsHtml += `
-            <tr style="border-bottom: 1px solid #e2e8f0;">
-                <td style="padding: 12px; text-align: center; font-weight: 700; color: #1e3a8a;">${index + 1}</td>
-                <td style="padding: 12px; text-align: right; font-weight: 600;">${item.name}</td>
-                <td style="padding: 12px; text-align: center;">${item.qty}</td>
-                <td style="padding: 12px; text-align: center;">${item.price.toLocaleString()} ج.س</td>
-                <td style="padding: 12px; text-align: center; color: #dc2626;">${(item.discount || 0).toLocaleString()} ج.س</td>
-                <td style="padding: 12px; text-align: center; font-weight: 700;">${item.total.toLocaleString()} ج.س</td>
-            </tr>
+        <tr style="background:${i % 2 ? '#f9fafb' : '#ffffff'};">
+            <td style="padding:10px;text-align:center;">${i + 1}</td>
+            <td style="padding:10px;text-align:right;">${item.name}</td>
+            <td style="padding:10px;text-align:center;">${item.qty}</td>
+            <td style="padding:10px;text-align:center;">
+                ${(isSale ? item.price : item.cost).toLocaleString()} ج.س
+            </td>
+            <td style="padding:10px;text-align:center;font-weight:bold;">
+                ${item.total.toLocaleString()} ج.س
+            </td>
+        </tr>
         `;
     });
-    document.getElementById('printItems').innerHTML = itemsHtml;
-    
-    // المجاميع
-    document.getElementById('printSubtotal').textContent = invoice.subtotal.toLocaleString() + ' ج.س';
-    document.getElementById('printDiscount').textContent = (invoice.discount || 0).toLocaleString() + ' ج.س';
-    document.getElementById('printTotal').textContent = invoice.total.toLocaleString() + ' ج.س';
-    document.getElementById('printFooterNotes').textContent = settings.shopNotes || '';
-    
-    // إظهار وطباعة
-    const printSection = document.getElementById('printSection');
-    printSection.style.display = 'block';
-    
+
+    printDiv.innerHTML = `
+    <div style="padding:30px;font-family:Tahoma;direction:rtl;background:#fff;color:#111;">
+
+        <div style="border:2px solid ${mainColor};border-radius:18px;overflow:hidden;">
+
+            <!-- HEADER -->
+            <div style="background:${mainColor};color:#fff;padding:20px;">
+                <div style="display:flex;justify-content:space-between;">
+                    
+                    <div>
+                        <h1 style="margin:0;font-size:28px;">${settings.shopName}</h1>
+                        <p style="margin:5px 0;">${settings.shopAddress}</p>
+                        <p style="margin:0;">${settings.shopPhone}</p>
+                    </div>
+
+                    <div style="text-align:left;">
+                        <h2 style="margin:0;color:${gold};">${title}</h2>
+                        <p>رقم: ${inv.number}</p>
+                        <p>تاريخ: ${new Date(inv.date).toLocaleDateString('ar-SD')}</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- CUSTOMER -->
+            <div style="padding:15px;background:#f9fafb;">
+                <p><strong>الاسم:</strong> ${personName || '-'}</p>
+                <p><strong>الهاتف:</strong> ${personPhone || '-'}</p>
+                <p><strong>الدفع:</strong> ${
+                    inv.paymentMethod === 'cash' ? 'نقدي' :
+                    inv.paymentMethod === 'bank' ? 'بنكي' : 'آجل'
+                }</p>
+            </div>
+
+            <!-- TABLE -->
+            <div style="padding:20px;">
+                <table style="width:100%;border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:${gold};">
+                            <th>#</th>
+                            <th style="text-align:right;">الصنف</th>
+                            <th>الكمية</th>
+                            <th>السعر</th>
+                            <th>الإجمالي</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
+                </table>
+
+                <!-- TOTAL -->
+                <div style="margin-top:25px;text-align:left;">
+                    <p>المجموع: ${inv.subtotal.toLocaleString()} ج.س</p>
+
+                    ${inv.discount ? `
+                    <p style="color:red;">
+                        الخصم: ${inv.discount.toLocaleString()} ج.س
+                    </p>` : ''}
+
+                    ${inv.shipping ? `
+                    <p>
+                        الشحن: ${inv.shipping.toLocaleString()} ج.س
+                    </p>` : ''}
+
+                    <h2 style="color:${mainColor};">
+                        الإجمالي: ${inv.total.toLocaleString()} ج.س
+                    </h2>
+                </div>
+
+            </div>
+
+            <!-- FOOTER -->
+            <div style="text-align:center;padding:15px;border-top:1px dashed #ccc;">
+                <p>شكراً لتعاملكم معنا</p>
+                <p style="color:#888;">فخامة تُرى… وجودة تُلمس</p>
+            </div>
+
+        </div>
+
+    </div>
+    `;
+
+    printDiv.style.display = 'block';
+
     setTimeout(() => {
         window.print();
+
         setTimeout(() => {
-            printSection.style.display = 'none';
-        }, 100);
-    }, 100);
+            printDiv.style.display = 'none';
+            printDiv.innerHTML = '';
+        }, 300);
+
+    }, 200);
 }
